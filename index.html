@@ -37,6 +37,20 @@
     @media (prefers-reduced-motion: reduce) { .lift { transition: none; } }
     .activity-card{background-color:rgba(255,255,255,.9);border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);border:1px solid rgba(226,232,240,1)}
     .dark .activity-card{background-color:rgba(2,6,23,.7);border-color:#1f2937}
+    .writing-panel{display:flex;flex-direction:column;gap:.75rem;background-color:rgba(255,255,255,.88);border:1px solid rgba(226,232,240,1);border-radius:1rem;padding:1.25rem;box-shadow:0 18px 30px -24px rgba(15,23,42,.45)}
+    .dark .writing-panel{background-color:rgba(15,23,42,.72);border-color:rgba(71,85,105,1);box-shadow:0 18px 30px -24px rgba(0,0,0,.65)}
+    .writing-panel textarea{width:100%;border-radius:.75rem;border:1px solid rgba(203,213,225,1);background-color:rgba(255,255,255,.95);padding:.75rem 1rem;font-size:.95rem;line-height:1.5;color:rgba(30,41,59,1);transition:border-color .16s ease,box-shadow .16s ease}
+    .writing-panel textarea:hover{border-color:rgba(148,163,184,1)}
+    .writing-panel textarea:focus{outline:none;border-color:rgba(59,130,246,1);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+    .dark .writing-panel textarea{background-color:rgba(2,6,23,.75);border-color:rgba(51,65,85,1);color:rgba(226,232,240,1)}
+    .writing-panel-footer{display:flex;align-items:center;justify-content:space-between;font-size:.75rem;color:rgba(100,116,139,1)}
+    .dark .writing-panel-footer{color:rgba(148,163,184,1)}
+    .writing-panel-footer button{background:none;border:none;padding:0;font-weight:600;color:rgba(59,130,246,1);cursor:pointer;border-radius:.5rem}
+    .writing-panel-footer button:hover{color:rgba(29,78,216,1)}
+    .writing-panel-footer button:focus-visible{outline:2px solid rgba(59,130,246,1);outline-offset:2px}
+    .dark .writing-panel-footer button{color:rgba(165,180,252,1)}
+    .dark .writing-panel-footer button:hover{color:rgba(129,140,248,1)}
+    .dark .writing-panel-footer button:focus-visible{outline-color:rgba(165,180,252,1)}
   </style>
 </head>
 <body class="bg-gray-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100">
@@ -163,13 +177,69 @@
             </video>
           </div>
           <h3 class="text-xl font-extrabold mb-3">Five‑Finger Summaries 🖐️</h3>
-          <p class="mb-4">Prepare a short summary for each concept.</p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Separation of Powers</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Division of Powers</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>The Rule of Law</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Representative & Responsible Government</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4 md:col-span-2"><strong>Rights in the Constitution</strong></div>
+          <p class="mb-2">Prepare a short summary for each concept.</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4" data-storage-note="These writing panels autosave to this browser." data-storage-note-fallback="Autosave is unavailable in this browser session (for example, in private browsing).">These writing panels autosave to this browser.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="writing-panel">
+              <div class="flex items-start justify-between gap-3">
+                <h4 id="summary-separation-title" class="font-semibold text-lg text-slate-800 dark:text-slate-100">Separation of Powers</h4>
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Finger 1</span>
+              </div>
+              <p id="summary-separation-prompt" class="text-sm text-slate-600 dark:text-slate-300">Sum up how the Constitution shares authority between the legislative, executive, and judicial branches.</p>
+              <textarea id="summary-separation" class="resize-y min-h-[120px]" rows="4" data-storage-key="summary-separation" aria-labelledby="summary-separation-title" aria-describedby="summary-separation-prompt summary-separation-count" placeholder="Write your quick summary..."></textarea>
+              <div class="writing-panel-footer">
+                <span id="summary-separation-count" data-count-for="summary-separation">0 words</span>
+                <button type="button" data-clear-target="summary-separation">Clear</button>
+              </div>
+            </div>
+            <div class="writing-panel">
+              <div class="flex items-start justify-between gap-3">
+                <h4 id="summary-division-title" class="font-semibold text-lg text-slate-800 dark:text-slate-100">Division of Powers</h4>
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Finger 2</span>
+              </div>
+              <p id="summary-division-prompt" class="text-sm text-slate-600 dark:text-slate-300">Explain how powers are divided between the Commonwealth and the states in Section&nbsp;51 and beyond.</p>
+              <textarea id="summary-division" class="resize-y min-h-[120px]" rows="4" data-storage-key="summary-division" aria-labelledby="summary-division-title" aria-describedby="summary-division-prompt summary-division-count" placeholder="Write your quick summary..."></textarea>
+              <div class="writing-panel-footer">
+                <span id="summary-division-count" data-count-for="summary-division">0 words</span>
+                <button type="button" data-clear-target="summary-division">Clear</button>
+              </div>
+            </div>
+            <div class="writing-panel">
+              <div class="flex items-start justify-between gap-3">
+                <h4 id="summary-rule-title" class="font-semibold text-lg text-slate-800 dark:text-slate-100">The Rule of Law</h4>
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Finger 3</span>
+              </div>
+              <p id="summary-rule-prompt" class="text-sm text-slate-600 dark:text-slate-300">Capture what the Constitution says (or leaves unsaid) about everyone following the law, including government.</p>
+              <textarea id="summary-rule" class="resize-y min-h-[120px]" rows="4" data-storage-key="summary-rule" aria-labelledby="summary-rule-title" aria-describedby="summary-rule-prompt summary-rule-count" placeholder="Write your quick summary..."></textarea>
+              <div class="writing-panel-footer">
+                <span id="summary-rule-count" data-count-for="summary-rule">0 words</span>
+                <button type="button" data-clear-target="summary-rule">Clear</button>
+              </div>
+            </div>
+            <div class="writing-panel">
+              <div class="flex items-start justify-between gap-3">
+                <h4 id="summary-responsible-title" class="font-semibold text-lg text-slate-800 dark:text-slate-100">Representative &amp; Responsible Government</h4>
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Finger 4</span>
+              </div>
+              <p id="summary-responsible-prompt" class="text-sm text-slate-600 dark:text-slate-300">Describe how elections, Parliament, and conventions like responsible government show up in the text.</p>
+              <textarea id="summary-responsible" class="resize-y min-h-[120px]" rows="4" data-storage-key="summary-responsible" aria-labelledby="summary-responsible-title" aria-describedby="summary-responsible-prompt summary-responsible-count" placeholder="Write your quick summary..."></textarea>
+              <div class="writing-panel-footer">
+                <span id="summary-responsible-count" data-count-for="summary-responsible">0 words</span>
+                <button type="button" data-clear-target="summary-responsible">Clear</button>
+              </div>
+            </div>
+            <div class="writing-panel md:col-span-2">
+              <div class="flex items-start justify-between gap-3">
+                <h4 id="summary-rights-title" class="font-semibold text-lg text-slate-800 dark:text-slate-100">Rights in the Constitution</h4>
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Finger 5</span>
+              </div>
+              <p id="summary-rights-prompt" class="text-sm text-slate-600 dark:text-slate-300">Note the specific rights that exist, the gaps that remain, and how that compares with expectations from your class brainstorm.</p>
+              <textarea id="summary-rights" class="resize-y min-h-[140px]" rows="5" data-storage-key="summary-rights" aria-labelledby="summary-rights-title" aria-describedby="summary-rights-prompt summary-rights-count" placeholder="Write your quick summary..."></textarea>
+              <div class="writing-panel-footer">
+                <span id="summary-rights-count" data-count-for="summary-rights">0 words</span>
+                <button type="button" data-clear-target="summary-rights">Clear</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -191,6 +261,21 @@
             <li><strong>Why the gap?</strong> Consider the 1901 context and the goal of uniting six colonies.</li>
           </ul>
           <p class="mt-4 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-400 p-4 rounded-r-lg">Use your answers to write a concluding paragraph on the difference between the 'vibe' you expected and the 'text' you discovered.</p>
+          <div class="mt-6 space-y-3">
+            <p class="text-sm text-slate-500 dark:text-slate-400" data-storage-note="This reflection panel autosaves to this browser." data-storage-note-fallback="Autosave is unavailable in this browser session (for example, in private browsing).">This reflection panel autosaves to this browser.</p>
+            <div class="writing-panel">
+              <div class="flex items-start justify-between gap-3">
+                <h3 id="showdown-response-title" class="text-lg font-semibold text-slate-800 dark:text-slate-100">Showdown Reflection</h3>
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Write it out</span>
+              </div>
+              <p id="showdown-response-prompt" class="text-sm text-slate-600 dark:text-slate-300">Tie together the vibe from your brainstorm, the text you heard in the video, and why the two differ. Aim for 5–7 sentences that a classmate could read to understand your perspective.</p>
+              <textarea id="showdown-response" class="resize-y min-h-[160px]" rows="6" data-storage-key="showdown-response" aria-labelledby="showdown-response-title" aria-describedby="showdown-response-prompt showdown-response-count" placeholder="Draft your concluding paragraph..."></textarea>
+              <div class="writing-panel-footer">
+                <span id="showdown-response-count" data-count-for="showdown-response">0 words</span>
+                <button type="button" data-clear-target="showdown-response">Clear</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -321,6 +406,84 @@
   </footer>
 
   <script>
+    // Writing panels: autosave + word counts
+    (function(){
+      const storagePrefix = 'civics-v2-writing-';
+      let storageAvailable = true;
+      try {
+        const testKey = `${storagePrefix}check`;
+        localStorage.setItem(testKey, '1');
+        localStorage.removeItem(testKey);
+      } catch (err) {
+        storageAvailable = false;
+      }
+
+      const storageNotes = document.querySelectorAll('[data-storage-note]');
+      const applyStorageNote = () => {
+        storageNotes.forEach((note) => {
+          const availableMsg = note.dataset.storageNote || note.textContent || '';
+          const fallbackMsg = note.dataset.storageNoteFallback || availableMsg;
+          note.textContent = storageAvailable ? availableMsg : fallbackMsg;
+        });
+      };
+      applyStorageNote();
+
+      const textareas = document.querySelectorAll('textarea[data-storage-key]');
+      const updateCountFor = (textarea) => {
+        const countEl = document.querySelector(`[data-count-for="${textarea.id}"]`);
+        if (!countEl) return;
+        const text = textarea.value.trim();
+        const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+        countEl.textContent = `${words} word${words === 1 ? '' : 's'}`;
+      };
+
+      textareas.forEach((textarea) => {
+        const key = `${storagePrefix}${textarea.dataset.storageKey}`;
+        if (storageAvailable) {
+          try {
+            const savedValue = localStorage.getItem(key);
+            if (savedValue !== null) textarea.value = savedValue;
+          } catch (err) {
+            storageAvailable = false;
+            applyStorageNote();
+          }
+        }
+
+        updateCountFor(textarea);
+
+        textarea.addEventListener('input', () => {
+          if (storageAvailable) {
+            try {
+              localStorage.setItem(key, textarea.value);
+            } catch (err) {
+              storageAvailable = false;
+              applyStorageNote();
+            }
+          }
+          updateCountFor(textarea);
+        });
+      });
+
+      document.querySelectorAll('[data-clear-target]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.clearTarget;
+          const target = document.getElementById(id);
+          if (!target) return;
+          target.value = '';
+          if (storageAvailable) {
+            try {
+              localStorage.removeItem(`${storagePrefix}${target.dataset.storageKey}`);
+            } catch (err) {
+              storageAvailable = false;
+              applyStorageNote();
+            }
+          }
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          target.focus();
+        });
+      });
+    })();
+
     // Mobile menu
     const menuBtn = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
