@@ -37,6 +37,40 @@
     @media (prefers-reduced-motion: reduce) { .lift { transition: none; } }
     .activity-card{background-color:rgba(255,255,255,.9);border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);border:1px solid rgba(226,232,240,1)}
     .dark .activity-card{background-color:rgba(2,6,23,.7);border-color:#1f2937}
+    .writing-panel{display:flex;flex-direction:column;gap:.75rem;background:rgba(255,255,255,.92);border-radius:1rem;border:1px solid rgba(148,163,184,.4);padding:1.25rem;box-shadow:0 14px 30px rgba(15,23,42,.08)}
+    .dark .writing-panel{background:rgba(15,23,42,.72);border-color:rgba(148,163,184,.35);box-shadow:none}
+    .writing-panel--accent{background:linear-gradient(135deg,rgba(196,181,253,.25),rgba(219,234,254,.24));border-color:rgba(168,85,247,.45)}
+    .dark .writing-panel--accent{background:rgba(76,29,149,.45);border-color:rgba(168,85,247,.55)}
+    .writing-panel--no-storage{border-color:rgba(249,115,22,.55)}
+    .writing-panel__header{display:flex;flex-direction:column;gap:.5rem}
+    .writing-panel__title{font-weight:700;font-size:1.05rem;letter-spacing:-.01em}
+    .writing-panel__prompt{font-size:.92rem;line-height:1.5;color:#475569}
+    .dark .writing-panel__prompt{color:rgba(226,232,240,.82)}
+    .writing-panel textarea{width:100%;min-height:150px;resize:vertical;border:1px solid rgba(148,163,184,.6);border-radius:.85rem;padding:.85rem 1rem;font:inherit;background-color:rgba(248,250,252,.94);transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+    .writing-panel textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15);background-color:#fff}
+    .writing-panel textarea::placeholder{color:rgba(100,116,139,.8)}
+    .dark .writing-panel textarea{background-color:rgba(15,23,42,.65);border-color:rgba(148,163,184,.45);color:inherit}
+    .dark .writing-panel textarea:focus{border-color:rgba(96,165,250,.8);box-shadow:0 0 0 3px rgba(96,165,250,.18);background-color:rgba(15,23,42,.85)}
+    .writing-panel__footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;font-size:.875rem;color:#475569}
+    .dark .writing-panel__footer{color:rgba(226,232,240,.78)}
+    .writing-panel__status{display:flex;align-items:center;gap:.4rem;color:inherit}
+    .writing-panel__status[data-state="success"]{color:#15803d}
+    .writing-panel__status[data-state="info"]{color:#0369a1}
+    .writing-panel__status[data-state="error"]{color:#b91c1c}
+    .writing-panel__status[data-state="saving"]{color:#2563eb}
+    .writing-panel__status[data-state="muted"]{color:#475569}
+    .dark .writing-panel__status[data-state="muted"]{color:rgba(226,232,240,.78)}
+    .dark .writing-panel__status[data-state="success"]{color:#4ade80}
+    .dark .writing-panel__status[data-state="info"]{color:#38bdf8}
+    .dark .writing-panel__status[data-state="error"]{color:#f87171}
+    .dark .writing-panel__status[data-state="saving"]{color:#93c5fd}
+    .writing-panel__actions{display:flex;align-items:center;gap:1rem}
+    .writing-panel__count{font-variant-numeric:tabular-nums;font-weight:600}
+    .writing-panel__reset{border:1px solid rgba(148,163,184,.6);border-radius:9999px;padding:.35rem .85rem;font-size:.85rem;font-weight:600;color:#2563eb;background:rgba(255,255,255,.94);transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease}
+    .writing-panel__reset:hover{background-color:rgba(219,234,254,1);box-shadow:0 6px 12px rgba(37,99,235,.18);transform:translateY(-1px)}
+    .writing-panel__reset:focus-visible{outline:2px solid rgba(37,99,235,.5);outline-offset:2px}
+    .dark .writing-panel__reset{background:rgba(15,23,42,.62);border-color:rgba(148,163,184,.5);color:#93c5fd}
+    .dark .writing-panel__reset:hover{background:rgba(37,99,235,.22)}
   </style>
 </head>
 <body class="bg-gray-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100">
@@ -163,13 +197,87 @@
             </video>
           </div>
           <h3 class="text-xl font-extrabold mb-3">Five‑Finger Summaries 🖐️</h3>
-          <p class="mb-4">Prepare a short summary for each concept.</p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Separation of Powers</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Division of Powers</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>The Rule of Law</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Representative & Responsible Government</strong></div>
-            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4 md:col-span-2"><strong>Rights in the Constitution</strong></div>
+          <p class="mb-4">Use the shared writing panels below to capture what each idea means in the Australian Constitution.</p>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <article class="writing-panel" data-writing-panel data-storage-key="five-separation">
+              <div class="writing-panel__header">
+                <h4 id="separation-title" class="writing-panel__title">Separation of Powers</h4>
+                <p id="prompt-separation" class="writing-panel__prompt">Summarise how the Constitution divides law-making, enforcing, and interpreting powers between Parliament, the Executive, and the High Court. Aim for 30–50 words.</p>
+              </div>
+              <label class="sr-only" for="summary-separation">Write a summary for Separation of Powers</label>
+              <textarea id="summary-separation" data-writing-input rows="5" aria-labelledby="separation-title" aria-describedby="prompt-separation" placeholder="Which branch does what? Include one detail or example from the video."></textarea>
+              <div class="writing-panel__footer">
+                <p class="writing-panel__status" data-writing-status aria-live="polite">Autosave ready.</p>
+                <div class="writing-panel__actions">
+                  <span class="writing-panel__count" data-writing-count>0 words</span>
+                  <button type="button" class="writing-panel__reset" data-writing-reset>Reset</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="writing-panel" data-writing-panel data-storage-key="five-division">
+              <div class="writing-panel__header">
+                <h4 id="division-title" class="writing-panel__title">Division of Powers</h4>
+                <p id="prompt-division" class="writing-panel__prompt">Explain how national and state governments split responsibilities. Name at least one Commonwealth power from the video. Aim for 30–50 words.</p>
+              </div>
+              <label class="sr-only" for="summary-division">Write a summary for Division of Powers</label>
+              <textarea id="summary-division" data-writing-input rows="5" aria-labelledby="division-title" aria-describedby="prompt-division" placeholder="What does the Commonwealth control? What stays with the states?"></textarea>
+              <div class="writing-panel__footer">
+                <p class="writing-panel__status" data-writing-status aria-live="polite">Autosave ready.</p>
+                <div class="writing-panel__actions">
+                  <span class="writing-panel__count" data-writing-count>0 words</span>
+                  <button type="button" class="writing-panel__reset" data-writing-reset>Reset</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="writing-panel" data-writing-panel data-storage-key="five-rule">
+              <div class="writing-panel__header">
+                <h4 id="rule-title" class="writing-panel__title">The Rule of Law</h4>
+                <p id="prompt-rule" class="writing-panel__prompt">Describe what the rule of law means in Australia's system and how the Constitution protects it. Aim for 30–50 words.</p>
+              </div>
+              <label class="sr-only" for="summary-rule">Write a summary for the Rule of Law</label>
+              <textarea id="summary-rule" data-writing-input rows="5" aria-labelledby="rule-title" aria-describedby="prompt-rule" placeholder="Who must follow the law? Mention any safeguards or courts that enforce it."></textarea>
+              <div class="writing-panel__footer">
+                <p class="writing-panel__status" data-writing-status aria-live="polite">Autosave ready.</p>
+                <div class="writing-panel__actions">
+                  <span class="writing-panel__count" data-writing-count>0 words</span>
+                  <button type="button" class="writing-panel__reset" data-writing-reset>Reset</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="writing-panel" data-writing-panel data-storage-key="five-representative">
+              <div class="writing-panel__header">
+                <h4 id="representative-title" class="writing-panel__title">Representative &amp; Responsible Government</h4>
+                <p id="prompt-representative" class="writing-panel__prompt">Outline how elections and accountability keep leaders answerable to the people. Include one example from the video. Aim for 30–50 words.</p>
+              </div>
+              <label class="sr-only" for="summary-representative">Write a summary for Representative and Responsible Government</label>
+              <textarea id="summary-representative" data-writing-input rows="5" aria-labelledby="representative-title" aria-describedby="prompt-representative" placeholder="How are members chosen? How must the government answer to Parliament?"></textarea>
+              <div class="writing-panel__footer">
+                <p class="writing-panel__status" data-writing-status aria-live="polite">Autosave ready.</p>
+                <div class="writing-panel__actions">
+                  <span class="writing-panel__count" data-writing-count>0 words</span>
+                  <button type="button" class="writing-panel__reset" data-writing-reset>Reset</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="writing-panel md:col-span-2" data-writing-panel data-storage-key="five-rights">
+              <div class="writing-panel__header">
+                <h4 id="rights-title" class="writing-panel__title">Rights in the Constitution</h4>
+                <p id="prompt-rights" class="writing-panel__prompt">Identify the specific rights named in the Constitution and note any limits or rights that are missing. Aim for 40–60 words.</p>
+              </div>
+              <label class="sr-only" for="summary-rights">Write a summary for Rights in the Constitution</label>
+              <textarea id="summary-rights" data-writing-input rows="5" aria-labelledby="rights-title" aria-describedby="prompt-rights" placeholder="Which rights are explicit? Which did you expect but not find?"></textarea>
+              <div class="writing-panel__footer">
+                <p class="writing-panel__status" data-writing-status aria-live="polite">Autosave ready.</p>
+                <div class="writing-panel__actions">
+                  <span class="writing-panel__count" data-writing-count>0 words</span>
+                  <button type="button" class="writing-panel__reset" data-writing-reset>Reset</button>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
       </div>
@@ -190,7 +298,29 @@
             <li><strong>What's surprising?</strong> Anything unexpected—how much is mechanics of government vs rights?</li>
             <li><strong>Why the gap?</strong> Consider the 1901 context and the goal of uniting six colonies.</li>
           </ul>
-          <p class="mt-4 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-400 p-4 rounded-r-lg">Use your answers to write a concluding paragraph on the difference between the 'vibe' you expected and the 'text' you discovered.</p>
+          <div class="mt-6">
+            <article class="writing-panel writing-panel--accent" data-writing-panel data-storage-key="showdown-reflection">
+              <div class="writing-panel__header">
+                <h3 id="showdown-title" class="writing-panel__title">Showdown Reflection Paragraph</h3>
+                <p id="prompt-showdown" class="writing-panel__prompt">Use the guiding questions to craft a concluding paragraph that compares the class "vibe" with the constitutional text. Aim for four to five sentences.</p>
+                <ol id="showdown-steps" class="list-decimal list-inside space-y-1 text-sm text-slate-600 dark:text-slate-200">
+                  <li>Start with a topic sentence that states the contrast.</li>
+                  <li>Include one detail from your Big Paper ideas and one from the video.</li>
+                  <li>Explain why the differences exist in the 1901 context.</li>
+                  <li>Finish with what this teaches about constitutions today.</li>
+                </ol>
+              </div>
+              <label class="sr-only" for="showdown-reflection">Write your concluding paragraph</label>
+              <textarea id="showdown-reflection" data-writing-input rows="7" aria-labelledby="showdown-title" aria-describedby="prompt-showdown showdown-steps" placeholder="Although we expected the Constitution to…, the text actually…, because…. This shows…"></textarea>
+              <div class="writing-panel__footer">
+                <p class="writing-panel__status" data-writing-status aria-live="polite">Autosave ready.</p>
+                <div class="writing-panel__actions">
+                  <span class="writing-panel__count" data-writing-count>0 words</span>
+                  <button type="button" class="writing-panel__reset" data-writing-reset>Reset</button>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
     </section>
@@ -257,6 +387,174 @@
   </div>
 
   <script>
+    (function(){
+      const panels = Array.from(document.querySelectorAll('[data-writing-panel]'));
+      if (!panels.length) return;
+
+      const storagePrefix = 'civics-writing-panel-';
+      let storageAvailable = true;
+      let storage;
+
+      try {
+        storage = window.localStorage;
+        const probeKey = storagePrefix + 'probe';
+        storage.setItem(probeKey, 'ok');
+        storage.removeItem(probeKey);
+      } catch (error) {
+        storageAvailable = false;
+        storage = null;
+      }
+
+      const watchers = [];
+
+      function setStatus(statusEl, message, state){
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        if (state) {
+          statusEl.setAttribute('data-state', state);
+        } else {
+          statusEl.removeAttribute('data-state');
+        }
+      }
+
+      function countWords(text){
+        if (!text) return 0;
+        const trimmed = text.trim();
+        if (!trimmed) return 0;
+        return trimmed.split(/\s+/).filter(Boolean).length;
+      }
+
+      function formatCount(count){
+        return `${count} word${count === 1 ? '' : 's'}`;
+      }
+
+      function broadcastStorageDisabled(){
+        if (!storageAvailable) return;
+        storageAvailable = false;
+        storage = null;
+        watchers.forEach((item) => {
+          if (typeof item.cancel === 'function') item.cancel();
+          if (typeof item.clearPending === 'function') item.clearPending();
+          item.panel.classList.add('writing-panel--no-storage');
+          setStatus(item.statusEl, 'Autosave unavailable — your writing stays only while this tab is open.', 'error');
+        });
+      }
+
+      panels.forEach((panel, index) => {
+        const textarea = panel.querySelector('[data-writing-input]');
+        const statusEl = panel.querySelector('[data-writing-status]');
+        const countEl = panel.querySelector('[data-writing-count]');
+        const resetBtn = panel.querySelector('[data-writing-reset]');
+
+        if (!textarea || !statusEl || !countEl) return;
+
+        const storageKey = storagePrefix + (panel.getAttribute('data-storage-key') || textarea.id || index);
+        let revertTimer = null;
+        let pendingSave = null;
+
+        const watcher = {
+          panel,
+          statusEl,
+          cancel(){
+            if (revertTimer){
+              clearTimeout(revertTimer);
+              revertTimer = null;
+            }
+          },
+          clearPending(){
+            if (pendingSave){
+              clearTimeout(pendingSave);
+              pendingSave = null;
+            }
+          }
+        };
+
+        watchers.push(watcher);
+
+        function updateStatus(message, state, revertToReady = false){
+          setStatus(statusEl, message, state);
+          watcher.cancel();
+          if (revertToReady && storageAvailable && storage){
+            revertTimer = window.setTimeout(() => {
+              setStatus(statusEl, 'Autosave ready.', 'muted');
+              revertTimer = null;
+            }, 2200);
+          }
+        }
+
+        function updateCount(){
+          const words = countWords(textarea.value);
+          countEl.textContent = formatCount(words);
+        }
+
+        function persist(){
+          if (!storageAvailable || !storage) return;
+          try {
+            if (textarea.value){
+              storage.setItem(storageKey, textarea.value);
+            } else {
+              storage.removeItem(storageKey);
+            }
+            updateStatus('Saved just now.', 'success', true);
+          } catch (error) {
+            broadcastStorageDisabled();
+          }
+        }
+
+        function scheduleSave(){
+          updateCount();
+          if (!storageAvailable || !storage){
+            updateStatus('Autosave unavailable — your writing stays only while this tab is open.', 'error');
+            return;
+          }
+          updateStatus('Saving…', 'saving');
+          watcher.clearPending();
+          pendingSave = window.setTimeout(() => {
+            pendingSave = null;
+            persist();
+          }, 400);
+        }
+
+        if (storageAvailable && storage){
+          const stored = storage.getItem(storageKey);
+          if (typeof stored === 'string'){
+            textarea.value = stored;
+            updateStatus('Restored from your last visit.', 'info', true);
+          } else {
+            updateStatus('Autosave ready.', 'muted');
+          }
+        } else {
+          panel.classList.add('writing-panel--no-storage');
+          updateStatus('Autosave unavailable — your writing stays only while this tab is open.', 'error');
+        }
+
+        updateCount();
+
+        textarea.addEventListener('input', scheduleSave);
+        textarea.addEventListener('blur', () => {
+          watcher.clearPending();
+          persist();
+        });
+
+        if (resetBtn){
+          resetBtn.addEventListener('click', () => {
+            watcher.clearPending();
+            textarea.value = '';
+            if (storageAvailable && storage){
+              try {
+                storage.removeItem(storageKey);
+              } catch (error) {
+                broadcastStorageDisabled();
+              }
+            }
+            updateCount();
+            updateStatus('Cleared. Start fresh.', 'muted', true);
+            textarea.focus();
+          });
+        }
+      });
+    })();
+
     // Constitution Game logic (Easy Mode + vocab help + read aloud)
     (function(){
       const easyQuestions = [
