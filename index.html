@@ -195,152 +195,188 @@
       </div>
     </section>
 
-    <!-- Activity 4: Game -->
+    <!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Vibe vs. The Text: Australia's Constitution</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .activity-card{background-color:rgba(255,255,255,.9);border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);border:1px solid rgba(226,232,240,1)}
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+  <div class="container mx-auto px-4 py-8 md:py-12">
+    <header class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">🏛️ The Vibe vs. The Text</h1>
+      <p class="text-lg text-gray-600 max-w-3xl mx-auto">Exploring Australia's Constitution</p>
+    </header>
+
+    <!-- Existing activities 1, 2, 3 will stay as in your version -->
+    
+    <!-- Activity 4: Constitution Game -->
     <section id="activity-4" class="activity-card">
       <div class="flex items-start">
         <div class="mr-4 shrink-0">
-          <div class="h-10 w-10 rounded-xl grid place-items-center bg-indigo-100 text-indigo-700 font-bold">4</div>
+          <div class="h-10 w-10 rounded-xl grid place-items-center bg-yellow-100 text-yellow-700 font-bold">4</div>
         </div>
-        <div class="w-full">
-          <h2 class="text-2xl font-extrabold mb-3">Constitution Game 🎮 — Vibe or Text?</h2>
-          <p class="mb-4">Decide whether each statement reflects the <strong>Vibe</strong> (popular expectation) or the actual <strong>Text</strong> of Australia's Constitution. Get instant feedback and track your score.</p>
-
-          <div id="game" class="max-w-2xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 border border-slate-200 dark:border-slate-800">
-            <h3 class="text-xl font-bold text-center mb-6">⚖️ Constitution Game</h3>
-            <!-- Question -->
+        <div class="flex-1">
+          <h2 class="text-2xl font-extrabold mb-3">Constitution Game 🎮</h2>
+          <p class="mb-4">Test your knowledge! Decide if each statement is part of the actual <strong>Text</strong> of the Constitution or just the <strong>Vibe</strong>.</p>
+          <div id="game" class="max-w-xl mx-auto bg-white rounded-xl shadow p-6 border border-gray-200">
             <div id="question" class="text-lg font-medium text-center mb-4"></div>
-            <!-- Answer buttons -->
             <div class="flex justify-center gap-4 mb-4">
-              <button id="btnVibe" class="px-4 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:opacity-90">Vibe</button>
-              <button id="btnText" class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:opacity-90">Text</button>
+              <button onclick="answer('vibe')" class="px-4 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:opacity-90">Vibe</button>
+              <button onclick="answer('text')" class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:opacity-90">Text</button>
             </div>
-            <!-- Feedback -->
-            <div id="feedback" class="text-center text-sm mb-4 min-h-[1.5rem]"></div>
-            <!-- Score + Next -->
+            <div id="feedback" class="text-center text-sm mb-4"></div>
             <div class="flex justify-between items-center">
-              <div id="score" class="font-semibold text-slate-700 dark:text-slate-300"></div>
-              <button id="nextBtn" class="hidden px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold hover:opacity-90">Next →</button>
+              <div id="score" class="font-semibold text-gray-700"></div>
+              <button id="nextBtn" onclick="nextQuestion()" class="hidden px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:opacity-90">Next →</button>
             </div>
           </div>
-
-          <script>
-            (function(){
-              const statements = [
-                { q: "The Prime Minister is mentioned in the Constitution.", a: "vibe", exp: "The Constitution doesn't mention the PM; it establishes the Parliament, Governor‑General, and courts." },
-                { q: "The Constitution divides powers between the Commonwealth and the States.", a: "text", exp: "Yes — division of powers is a core feature (e.g., s 51 lists Commonwealth powers)." },
-                { q: "Environmental protection is a key constitutional principle.", a: "vibe", exp: "The 1901 text contains no general environment/climate provisions." },
-                { q: "The Constitution establishes the High Court of Australia.", a: "text", exp: "Correct — it creates the High Court and outlines its jurisdiction (Chapter III)." },
-                { q: "There is a comprehensive Bill of Rights in the Constitution.", a: "vibe", exp: "There is no general Bill of Rights, only a few narrow rights (e.g., s 116 religion, jury for indictable Commonwealth offences)." },
-                { q: "The Constitution allows the Commonwealth to make marriage laws.", a: "text", exp: "Yes — marriage is among the heads of power in s 51." },
-                { q: "The office of Prime Minister is created by constitutional convention, not the text.", a: "text", exp: "Right — the PM exists by convention within responsible government, not by explicit mention." }
-              ];
-
-              // Shuffle for each play
-              function shuffle(arr){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
-              let qs = shuffle([...statements]);
-              let current = 0, score = 0;
-
-              const qEl = document.getElementById('question');
-              const fEl = document.getElementById('feedback');
-              const sEl = document.getElementById('score');
-              const nextBtn = document.getElementById('nextBtn');
-              const btnVibe = document.getElementById('btnVibe');
-              const btnText = document.getElementById('btnText');
-
-              function loadQuestion(){
-                const q = qs[current];
-                qEl.textContent = q.q;
-                fEl.textContent = '';
-                nextBtn.classList.add('hidden');
-                sEl.textContent = `Score: ${score}/${current}`;
-              }
-
-              function setDisabled(disabled){
-                btnVibe.disabled = btnText.disabled = disabled;
-                btnVibe.classList.toggle('opacity-60', disabled);
-                btnText.classList.toggle('opacity-60', disabled);
-              }
-
-              function answer(choice){
-                const q = qs[current];
-                setDisabled(true);
-                if (choice === q.a){
-                  score++;
-                  fEl.innerHTML = `<span class='text-green-600 font-bold'>✔ Correct!</span> ${q.exp}`;
-                } else {
-                  fEl.innerHTML = `<span class='text-red-600 font-bold'>✘ Incorrect.</span> ${q.exp}`;
-                }
-                nextBtn.classList.remove('hidden');
-                sEl.textContent = `Score: ${score}/${current+1}`;
-              }
-
-              function nextQuestion(){
-                current++;
-                if (current < qs.length){
-                  setDisabled(false);
-                  loadQuestion();
-                } else {
-                  qEl.textContent = 'Game Over! 🎉';
-                  fEl.textContent = `Your final score is ${score}/${qs.length}.`;
-                  nextBtn.textContent = 'Play Again';
-                  nextBtn.onclick = restart;
-                }
-              }
-
-              function restart(){
-                qs = shuffle([...statements]);
-                current = 0; score = 0;
-                nextBtn.textContent = 'Next →';
-                nextBtn.onclick = nextQuestion;
-                setDisabled(false);
-                loadQuestion();
-              }
-
-              // Wire up
-              btnVibe.addEventListener('click', ()=>answer('vibe'));
-              btnText.addEventListener('click', ()=>answer('text'));
-              nextBtn.addEventListener('click', nextQuestion);
-
-              loadQuestion();
-            })();
-          </script>
         </div>
       </div>
     </section>
-  </main>
 
-  <!-- Resources / Footer -->
-  <footer id="resources" class="container text-center mt-12 mb-8">
-    <h2 class="text-xl font-extrabold mb-4">📚 Resources</h2>
-    <div class="flex flex-wrap justify-center gap-3">
-      <a class="inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90" href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-australian-constitution-video/" target="_blank" rel="noopener noreferrer">PEO Video Page</a>
-      <a class="inline-flex items-center rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800" href="https://www.facinghistory.org/resource-library/big-paper" target="_blank" rel="noopener noreferrer">“Big Paper” Strategy</a>
-      <a class="inline-flex items-center rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800" href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-constitution" target="_blank" rel="noopener noreferrer">Full Text of the Constitution</a>
-    </div>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-4">© <span id="year"></span> Civics Toolkit.</p>
-  </footer>
+    <!-- Footer -->
+    <footer id="resources" class="text-center mt-12">
+      <h2 class="text-xl font-bold mb-4">📚 Resources</h2>
+      <div class="flex justify-center space-x-4 text-blue-600 hover:text-blue-800">
+        <a href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-australian-constitution-video/" target="_blank">PEO Video Page</a>
+        <span class="text-gray-400">|</span>
+        <a href="https://www.facinghistory.org/resource-library/big-paper" target="_blank">"Big Paper" Strategy</a>
+        <span class="text-gray-400">|</span>
+        <a href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-constitution" target="_blank">Full Text of the Constitution</a>
+      </div>
+      <p class="text-sm text-gray-500 mt-4">© <span id="year"></span> Civics Toolkit</p>
+    </footer>
+  </div>
 
   <script>
-    // Mobile menu
-    const menuBtn = document.getElementById('menuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    if (menuBtn) menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+    // Constitution Game logic (Easy Mode + vocab help + read aloud)
+    (function(){
+      const easyQuestions = [
+        { q: "The Constitution names the Prime Minister.", a: "vibe", exp: "No. The words ‘Prime Minister’ are not in the Constitution." },
+        { q: "The Constitution splits powers between the national government and the states.", a: "text", exp: "Yes. It lists what the national Parliament can make laws about." },
+        { q: "The Constitution protects the environment.", a: "vibe", exp: "No. It doesn’t mention the environment or climate." },
+        { q: "The Constitution creates the High Court.", a: "text", exp: "Yes. It sets up the High Court." },
+        { q: "Australia has a big list of rights in the Constitution.", a: "vibe", exp: "No. There’s no general ‘Bill of Rights’." },
+        { q: "The Constitution lets Parliament make marriage laws.", a: "text", exp: "Yes. Marriage is one of the listed topics (powers)." },
+        { q: "The job ‘Prime Minister’ is a tradition, not written in the Constitution.", a: "text", exp: "Right. It’s a practice (a ‘convention’), not written in the words." }
+      ];
 
-    // Dark mode toggle (with persistence)
-    const toggle = document.getElementById('themeToggle');
-    const root = document.documentElement; const key = 'theme';
-    const saved = localStorage.getItem(key);
-    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      root.classList.add('dark');
-    }
-    if (toggle) toggle.addEventListener('click', () => {
-      root.classList.toggle('dark');
-      localStorage.setItem(key, root.classList.contains('dark') ? 'dark' : 'light');
-    });
+      const standardQuestions = [
+        { q: "The Prime Minister is mentioned in the Constitution.", a: "vibe", exp: "The Constitution does not mention the PM — it mostly covers Parliament, the Crown and the courts." },
+        { q: "The Constitution sets out rules for dividing power between the states and federal government.", a: "text", exp: "Yes — division of powers is a core part of the document (for example, section 51 lists Commonwealth powers)." },
+        { q: "Environmental protection is a key principle in the Constitution.", a: "vibe", exp: "No — the 1901 text doesn’t include environment or climate references." },
+        { q: "It establishes the High Court of Australia.", a: "text", exp: "Correct — the Constitution creates the High Court and its role (Chapter III)." },
+        { q: "It includes a Bill of Rights protecting free speech.", a: "vibe", exp: "No general Bill of Rights exists — only a few limited rights are in the text." },
+        { q: "The Constitution allows the Commonwealth to make marriage laws.", a: "text", exp: "Yes — marriage is among the heads of power in section 51." }
+      ];
+
+      let current = 0, score = 0, useEasy = true;
+      const gameEl = document.getElementById('game');
+      const qEl = document.getElementById('question');
+      const fEl = document.getElementById('feedback');
+      const sEl = document.getElementById('score');
+      const nextBtn = document.getElementById('nextBtn');
+
+      // Build a small control bar (Easy Mode + Read Aloud + Vocab help)
+      const controls = document.createElement('div');
+      controls.className = 'flex flex-wrap items-center justify-between gap-3 mb-4';
+      controls.innerHTML = `
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input id="easyToggle" type="checkbox" class="h-4 w-4 accent-purple-600" checked>
+          <span>Easy Mode</span>
+        </label>
+        <button id="speakBtn" class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm">🔊 Read aloud</button>
+        <details class="rounded-lg border border-gray-200 px-3 py-2 text-sm">
+          <summary class="cursor-pointer font-semibold">Vocab help</summary>
+          <ul class="mt-2 list-disc list-inside space-y-1 text-gray-700">
+            <li><strong>Constitution:</strong> the country’s main rule book</li>
+            <li><strong>Parliament:</strong> the people who make national laws</li>
+            <li><strong>High Court:</strong> the top court in Australia</li>
+            <li><strong>Bill of Rights:</strong> a big list of rights (Australia doesn’t have a general one in the Constitution)</li>
+            <li><strong>Division of powers:</strong> who does what: national vs states</li>
+          </ul>
+        </details>`;
+      gameEl.prepend(controls);
+
+      const easyToggle = document.getElementById('easyToggle');
+      const speakBtn = document.getElementById('speakBtn');
+
+      // Friendlier button labels
+      const btnVibe = Array.from(gameEl.querySelectorAll('button')).find(b => (b.getAttribute('onclick')||'').includes("answer('vibe'"));
+      const btnText = Array.from(gameEl.querySelectorAll('button')).find(b => (b.getAttribute('onclick')||'').includes("answer('text'"));
+      if (btnVibe) btnVibe.textContent = '💡 Idea (Vibe)';
+      if (btnText) btnText.textContent = '📜 In the Constitution';
+
+      function activeSet(){ return useEasy ? easyQuestions : standardQuestions; }
+
+      function loadQuestion(){
+        const arr = activeSet();
+        const q = arr[current];
+        qEl.textContent = q.q;
+        fEl.textContent = '';
+        nextBtn.classList.add('hidden');
+        sEl.textContent = `Score: ${score}/${current}`;
+      }
+
+      window.answer = function(choice){
+        const arr = activeSet();
+        const q = arr[current];
+        if (choice === q.a) {
+          score++;
+          fEl.innerHTML = `<span class="text-green-600 font-bold">✔ Correct!</span> ${q.exp}`;
+        } else {
+          fEl.innerHTML = `<span class="text-red-600 font-bold">✘ Incorrect.</span> ${q.exp}`;
+        }
+        nextBtn.classList.remove('hidden');
+        sEl.textContent = `Score: ${score}/${current+1}`;
+      }
+
+      window.nextQuestion = function(){
+        const arr = activeSet();
+        current++;
+        if (current < arr.length) {
+          loadQuestion();
+        } else {
+          qEl.textContent = 'Game Over! 🎉';
+          fEl.textContent = `Your final score is ${score}/${arr.length}.`;
+          nextBtn.textContent = 'Play Again';
+          nextBtn.onclick = restart;
+        }
+      }
+
+      function restart(){
+        current = 0; score = 0;
+        nextBtn.textContent = 'Next →';
+        nextBtn.onclick = window.nextQuestion;
+        loadQuestion();
+      }
+
+      easyToggle.addEventListener('change', () => { useEasy = easyToggle.checked; restart(); });
+
+      function speak(text){
+        try {
+          if (!('speechSynthesis' in window)) return;
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = 'en-AU';
+          window.speechSynthesis.speak(u);
+        } catch(e) { /* no-op if not supported */ }
+      }
+      speakBtn.addEventListener('click', () => { speak(qEl.textContent + '. ' + fEl.textContent); });
+
+      loadQuestion();
+    })();
 
     // Footer year
-    const y = document.getElementById('year');
-    if (y) y.textContent = new Date().getFullYear();
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
