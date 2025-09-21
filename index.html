@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Vibe vs. The Text: Australia's Constitution</title>
+  <meta name="description" content="Class activity pack + game: explore the 'vibe' people expect from a constitution vs the actual text of Australia's Constitution." />
+
+  <!-- Fonts & Tailwind (no build step required) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind design tokens (tweak these to match your brand)
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        container: { center: true, padding: '1rem' },
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'] },
+          colors: {
+            brand: {
+              50:  '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a'
+            }
+          },
+          boxShadow: { soft: '0 10px 30px rgba(2, 6, 23, 0.08)' }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Small polish */
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .lift { transition: transform .18s ease, box-shadow .18s ease; }
+    .lift:hover { transform: translateY(-4px); box-shadow: 0 24px 40px rgba(2,6,23,.12); }
+    @media (prefers-reduced-motion: reduce) { .lift { transition: none; } }
+    .activity-card{background-color:rgba(255,255,255,.9);border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);border:1px solid rgba(226,232,240,1)}
+    .dark .activity-card{background-color:rgba(2,6,23,.7);border-color:#1f2937}
+  </style>
+</head>
+<body class="bg-gray-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100">
+  <!-- Skip link -->
+  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 bg-brand-600 text-white px-3 py-2 rounded-lg">Skip to content</a>
+
+  <!-- Top ribbon (optional) -->
+  <div class="bg-gradient-to-r from-brand-600 to-brand-400 text-white text-sm">
+    <div class="container py-2 text-center">New classroom-ready version with a game! <a class="underline font-semibold" href="#activity-4">Jump to Game</a></div>
+  </div>
+
+  <!-- Header / Nav -->
+  <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-slate-900/70 border-b border-slate-200/60 dark:border-slate-800">
+    <div class="container flex h-16 items-center justify-between">
+      <a href="#" class="flex items-center gap-3">
+        <div class="h-8 w-8 rounded-xl bg-brand-600"></div>
+        <span class="font-extrabold tracking-tight">Civics Toolkit</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="#activity-1" class="hover:text-brand-600">Big Paper</a>
+        <a href="#activity-2" class="hover:text-brand-600">Real Deal</a>
+        <a href="#activity-3" class="hover:text-brand-600">Showdown</a>
+        <a href="#activity-4" class="hover:text-brand-600">Game</a>
+        <a href="#resources" class="hover:text-brand-600">Resources</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="themeToggle" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle dark mode">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M21.75 15.002A9.72 9.72 0 0 1 12.004 22C6.487 22 2 17.513 2 11.996 2 7.45 4.94 3.61 9.06 2.248a.75.75 0 0 1 .935.966 8.25 8.25 0 0 0 10.73 10.73.75.75 0 0 1 1.027.958Z"/></svg>
+        </button>
+        <button id="menuBtn" class="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Open menu">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6"><path d="M3.75 5.25h16.5v1.5H3.75zM3.75 11.25h16.5v1.5H3.75zM3.75 17.25h16.5v1.5H3.75z"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="md:hidden hidden border-t border-slate-200/60 dark:border-slate-800">
+      <div class="container py-3 grid gap-3">
+        <a href="#activity-1" class="py-2">Big Paper</a>
+        <a href="#activity-2" class="py-2">Real Deal</a>
+        <a href="#activity-3" class="py-2">Showdown</a>
+        <a href="#activity-4" class="py-2">Game</a>
+        <a href="#resources" class="py-2">Resources</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10 bg-gradient-to-b from-white via-brand-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"></div>
+    <div class="container grid md:grid-cols-2 gap-10 py-14 md:py-20 items-center">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.05]">🏛️ The Vibe vs. The Text</h1>
+        <p class="mt-4 text-lg text-slate-600 dark:text-slate-300">Exploring Australia's Constitution: compare what people expect a constitution to be with what the 1901 document actually says.</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="#activity-1" class="inline-flex items-center rounded-xl bg-brand-600 px-5 py-3 text-white font-semibold shadow-soft hover:opacity-90">Start Activity</a>
+          <a href="#resources" class="inline-flex items-center rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-3 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Teacher Resources</a>
+          <a href="#activity-4" class="inline-flex items-center rounded-xl bg-purple-600 px-5 py-3 text-white font-semibold shadow-soft hover:opacity-90">Play Game</a>
+        </div>
+      </div>
+      <div>
+        <div class="relative">
+          <div class="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-tr from-brand-200 to-brand-500 blur-3xl opacity-30"></div>
+          <div class="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-2 shadow-soft backdrop-blur">
+            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600&auto=format&fit=crop" alt="Students collaborating on civics activity" class="rounded-2xl"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main" class="container px-4 md:px-0">
+    <!-- Intro -->
+    <section aria-labelledby="intro-title" class="max-w-3xl mx-auto mb-12">
+      <div class="bg-white/90 dark:bg-slate-900/70 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800">
+        <h2 id="intro-title" class="text-2xl font-extrabold mb-4 text-center">What's the "Vibe" of the Constitution?</h2>
+        <p class="mb-4 text-slate-700 dark:text-slate-300">We often have a feeling about what a nation's most important document should do—fairness, rights, big principles. Watch this classic moment from <em>The Castle</em>.</p>
+        <!-- YouTube (privacy-enhanced) -->
+        <div class="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+          <div class="pt-[56.25%]"></div>
+          <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube-nocookie.com/embed/97IiPli_uXw" title="The Castle clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+        <p class="mt-4 text-slate-700 dark:text-slate-300">Then compare that vibe to the actual text of Australia's Constitution (1901). Let's investigate.</p>
+      </div>
+    </section>
+
+    <!-- Activity 1 -->
+    <section id="activity-1" class="activity-card">
+      <div class="flex items-start">
+        <div class="mr-4 shrink-0">
+          <div class="h-10 w-10 rounded-xl grid place-items-center bg-brand-100 text-brand-700 font-bold">1</div>
+        </div>
+        <div>
+          <h2 class="text-2xl font-extrabold mb-3">The "Big Paper" Brainstorm 🤔</h2>
+          <p class="mb-4 text-lg">Start with the big question: <strong>What should be in a constitution?</strong></p>
+          <p class="mb-4 bg-brand-50 border-l-4 border-brand-400 p-4 rounded-r-lg text-slate-700 dark:text-slate-300">Think of it as a country's rule book. It sets the highest rules for how government acts and how people are treated.</p>
+          <h3 class="font-semibold mb-2">Instructions</h3>
+          <ol class="list-decimal list-inside space-y-2 mb-4 text-slate-700 dark:text-slate-300">
+            <li>Use the whiteboard below to silently brainstorm your ideas.</li>
+            <li>Add digital sticky notes: key rules for fairness? limits on government? protected rights?</li>
+            <li>Read classmates' ideas and connect them with lines or comments.</li>
+            <li><span class="font-semibold">No talking</span>—all discussion happens on the Big Paper.</li>
+          </ol>
+          <!-- Miro embed -->
+          <div class="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 h-[600px] bg-white/30 dark:bg-slate-900/30">
+            <iframe class="absolute inset-0 w-full h-full" src="https://miro.com/app/live-embed/uXjVJFUyLhE=/?embedMode=view_only_without_ui&embedId=734789977828" title="Miro Big Paper" frameborder="0" allow="fullscreen; clipboard-read; clipboard-write" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity 2 -->
+    <section id="activity-2" class="activity-card">
+      <div class="flex items-start">
+        <div class="mr-4 shrink-0">
+          <div class="h-10 w-10 rounded-xl grid place-items-center bg-green-100 text-green-700 font-bold">2</div>
+        </div>
+        <div>
+          <h2 class="text-2xl font-extrabold mb-3">Unpacking the Real Deal 🎬</h2>
+          <p class="mb-4">Watch the Parliamentary Education Office video, then identify five key concepts.</p>
+          <div class="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 mb-6 bg-black">
+            <video controls class="block w-full h-auto" preload="metadata">
+              <source src="https://aphref.aph.gov.au/senate/Video/PEO/PEO-The-Constitution.mp4#t=0.1" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <h3 class="text-xl font-extrabold mb-3">Five‑Finger Summaries 🖐️</h3>
+          <p class="mb-4">Prepare a short summary for each concept.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Separation of Powers</strong></div>
+            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Division of Powers</strong></div>
+            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>The Rule of Law</strong></div>
+            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4"><strong>Representative & Responsible Government</strong></div>
+            <div class="rounded-lg bg-slate-100 dark:bg-slate-800/60 p-4 md:col-span-2"><strong>Rights in the Constitution</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity 3 -->
+    <section id="activity-3" class="activity-card">
+      <div class="flex items-start">
+        <div class="mr-4 shrink-0">
+          <div class="h-10 w-10 rounded-xl grid place-items-center bg-purple-100 text-purple-700 font-bold">3</div>
+        </div>
+        <div>
+          <h2 class="text-2xl font-extrabold mb-3">Vibe vs. Text Showdown ⚖️</h2>
+          <p class="mb-4">Compare your Big Paper ideas with what you learned from the video.</p>
+          <h3 class="font-semibold mb-2">Guiding Questions</h3>
+          <ul class="list-disc list-inside space-y-2 text-slate-700 dark:text-slate-300">
+            <li><strong>What's missing?</strong> Ideas from your class that are not in the video (e.g., bill of rights, PM mention, environment).</li>
+            <li><strong>What's surprising?</strong> Anything unexpected—how much is mechanics of government vs rights?</li>
+            <li><strong>Why the gap?</strong> Consider the 1901 context and the goal of uniting six colonies.</li>
+          </ul>
+          <p class="mt-4 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-400 p-4 rounded-r-lg">Use your answers to write a concluding paragraph on the difference between the 'vibe' you expected and the 'text' you discovered.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity 4: Game -->
+    <section id="activity-4" class="activity-card">
+      <div class="flex items-start">
+        <div class="mr-4 shrink-0">
+          <div class="h-10 w-10 rounded-xl grid place-items-center bg-indigo-100 text-indigo-700 font-bold">4</div>
+        </div>
+        <div class="w-full">
+          <h2 class="text-2xl font-extrabold mb-3">Constitution Game 🎮 — Vibe or Text?</h2>
+          <p class="mb-4">Decide whether each statement reflects the <strong>Vibe</strong> (popular expectation) or the actual <strong>Text</strong> of Australia's Constitution. Get instant feedback and track your score.</p>
+
+          <div id="game" class="max-w-2xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 border border-slate-200 dark:border-slate-800">
+            <h3 class="text-xl font-bold text-center mb-6">⚖️ Constitution Game</h3>
+            <!-- Question -->
+            <div id="question" class="text-lg font-medium text-center mb-4"></div>
+            <!-- Answer buttons -->
+            <div class="flex justify-center gap-4 mb-4">
+              <button id="btnVibe" class="px-4 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:opacity-90">Vibe</button>
+              <button id="btnText" class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:opacity-90">Text</button>
+            </div>
+            <!-- Feedback -->
+            <div id="feedback" class="text-center text-sm mb-4 min-h-[1.5rem]"></div>
+            <!-- Score + Next -->
+            <div class="flex justify-between items-center">
+              <div id="score" class="font-semibold text-slate-700 dark:text-slate-300"></div>
+              <button id="nextBtn" class="hidden px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold hover:opacity-90">Next →</button>
+            </div>
+          </div>
+
+          <script>
+            (function(){
+              const statements = [
+                { q: "The Prime Minister is mentioned in the Constitution.", a: "vibe", exp: "The Constitution doesn't mention the PM; it establishes the Parliament, Governor‑General, and courts." },
+                { q: "The Constitution divides powers between the Commonwealth and the States.", a: "text", exp: "Yes — division of powers is a core feature (e.g., s 51 lists Commonwealth powers)." },
+                { q: "Environmental protection is a key constitutional principle.", a: "vibe", exp: "The 1901 text contains no general environment/climate provisions." },
+                { q: "The Constitution establishes the High Court of Australia.", a: "text", exp: "Correct — it creates the High Court and outlines its jurisdiction (Chapter III)." },
+                { q: "There is a comprehensive Bill of Rights in the Constitution.", a: "vibe", exp: "There is no general Bill of Rights, only a few narrow rights (e.g., s 116 religion, jury for indictable Commonwealth offences)." },
+                { q: "The Constitution allows the Commonwealth to make marriage laws.", a: "text", exp: "Yes — marriage is among the heads of power in s 51." },
+                { q: "The office of Prime Minister is created by constitutional convention, not the text.", a: "text", exp: "Right — the PM exists by convention within responsible government, not by explicit mention." }
+              ];
+
+              // Shuffle for each play
+              function shuffle(arr){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+              let qs = shuffle([...statements]);
+              let current = 0, score = 0;
+
+              const qEl = document.getElementById('question');
+              const fEl = document.getElementById('feedback');
+              const sEl = document.getElementById('score');
+              const nextBtn = document.getElementById('nextBtn');
+              const btnVibe = document.getElementById('btnVibe');
+              const btnText = document.getElementById('btnText');
+
+              function loadQuestion(){
+                const q = qs[current];
+                qEl.textContent = q.q;
+                fEl.textContent = '';
+                nextBtn.classList.add('hidden');
+                sEl.textContent = `Score: ${score}/${current}`;
+              }
+
+              function setDisabled(disabled){
+                btnVibe.disabled = btnText.disabled = disabled;
+                btnVibe.classList.toggle('opacity-60', disabled);
+                btnText.classList.toggle('opacity-60', disabled);
+              }
+
+              function answer(choice){
+                const q = qs[current];
+                setDisabled(true);
+                if (choice === q.a){
+                  score++;
+                  fEl.innerHTML = `<span class='text-green-600 font-bold'>✔ Correct!</span> ${q.exp}`;
+                } else {
+                  fEl.innerHTML = `<span class='text-red-600 font-bold'>✘ Incorrect.</span> ${q.exp}`;
+                }
+                nextBtn.classList.remove('hidden');
+                sEl.textContent = `Score: ${score}/${current+1}`;
+              }
+
+              function nextQuestion(){
+                current++;
+                if (current < qs.length){
+                  setDisabled(false);
+                  loadQuestion();
+                } else {
+                  qEl.textContent = 'Game Over! 🎉';
+                  fEl.textContent = `Your final score is ${score}/${qs.length}.`;
+                  nextBtn.textContent = 'Play Again';
+                  nextBtn.onclick = restart;
+                }
+              }
+
+              function restart(){
+                qs = shuffle([...statements]);
+                current = 0; score = 0;
+                nextBtn.textContent = 'Next →';
+                nextBtn.onclick = nextQuestion;
+                setDisabled(false);
+                loadQuestion();
+              }
+
+              // Wire up
+              btnVibe.addEventListener('click', ()=>answer('vibe'));
+              btnText.addEventListener('click', ()=>answer('text'));
+              nextBtn.addEventListener('click', nextQuestion);
+
+              loadQuestion();
+            })();
+          </script>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Resources / Footer -->
+  <footer id="resources" class="container text-center mt-12 mb-8">
+    <h2 class="text-xl font-extrabold mb-4">📚 Resources</h2>
+    <div class="flex flex-wrap justify-center gap-3">
+      <a class="inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90" href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-australian-constitution-video/" target="_blank" rel="noopener noreferrer">PEO Video Page</a>
+      <a class="inline-flex items-center rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800" href="https://www.facinghistory.org/resource-library/big-paper" target="_blank" rel="noopener noreferrer">“Big Paper” Strategy</a>
+      <a class="inline-flex items-center rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800" href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-constitution" target="_blank" rel="noopener noreferrer">Full Text of the Constitution</a>
+    </div>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-4">© <span id="year"></span> Civics Toolkit.</p>
+  </footer>
+
+  <script>
+    // Mobile menu
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (menuBtn) menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    // Dark mode toggle (with persistence)
+    const toggle = document.getElementById('themeToggle');
+    const root = document.documentElement; const key = 'theme';
+    const saved = localStorage.getItem(key);
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+    if (toggle) toggle.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem(key, root.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Footer year
+    const y = document.getElementById('year');
+    if (y) y.textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
