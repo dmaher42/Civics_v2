@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collaborative Whiteboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family/Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -14,6 +14,10 @@
         canvas {
             display: block;
             background-color: #f8fafc; /* slate-50 */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
         }
         .tool-btn.active {
             background-color: #3b82f6; /* blue-500 */
@@ -23,26 +27,47 @@
             outline: 3px solid #3b82f6; /* blue-500 */
             outline-offset: 2px;
         }
+        /* Style for the text editing area */
+        #text-editor {
+            position: absolute;
+            z-index: 10;
+            border: none;
+            padding: 12px;
+            font-family: 'Inter', sans-serif;
+            resize: none;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body class="overflow-hidden bg-slate-100">
-
-    <canvas id="whiteboard"></canvas>
-
+    <div id="canvas-container" class="relative w-full h-full">
+        <canvas id="whiteboard"></canvas>
+        <textarea id="text-editor" class="hidden"></textarea>
+    </div>
+    
     <!-- Toolbar -->
-    <div id="toolbar" class="fixed top-4 left-1/2 -translate-x-1/2 bg-white shadow-lg rounded-lg p-2 flex items-center space-x-2 z-10">
+    <div id="toolbar" class="fixed top-4 left-1/2 -translate-x-1/2 bg-white shadow-lg rounded-lg p-2 flex items-center space-x-2 z-20">
         <!-- Tools -->
         <div class="flex items-center space-x-1 border-r pr-2">
+            <button id="select-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Select and Move">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
+            </button>
             <button id="pen-tool" class="tool-btn active p-2 rounded-md hover:bg-slate-200" title="Pen">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0
+ 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             </button>
-            <button id="eraser-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Eraser">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21H7Z"/><path d="M22 21H7"/><path d="m5 12 5 5"/></svg>
-            </button>
-             <button id="text-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Text">
+            <button id="text-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Text">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.1H3"/><path d="M21 12.1H3"/><path d="M15.1 18.1H3"/><path d="M7 4.1v16"/></svg>
             </button>
-            <button id="sticky-note-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Sticky Note">
+            <button id="rectangle-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Rectangle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            </button>
+            <button id="eraser-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Eraser (deletes your items)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21H7Z"/><path d="M22 21H7"/><path d="m5 12 5 5"/></svg>
+            </button>
+            <button id="sticky-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Sticky Note">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></svg>
             </button>
         </div>
@@ -57,221 +82,151 @@
         </div>
 
         <!-- Line Width -->
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2 border-r pr-2">
              <label for="line-width" class="text-sm text-slate-600">Size</label>
              <input type="range" id="line-width" min="1" max="20" value="5" class="w-24 cursor-pointer">
         </div>
+
+        <!-- Undo/Redo -->
+        <div class="flex items-center space-x-1 border-r pr-2">
+            <button id="undo-btn" class="p-2 rounded-md hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v6h6"/><path d="M21 10a9 9 0 0 0-14.24 5.76L3 16"/></svg>
+            </button>
+            <button id="redo-btn" class="p-2 rounded-md hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10v6h-6"/><path d="M3 10a9 9 0 0 1 14.24 5.76L21 16"/></svg>
+            </button>
+        </div>
         
-        <!-- Clear Canvas -->
-        <div class="border-l pl-2">
-            <button id="clear-canvas" data-teacher-only class="p-2 rounded-md hover:bg-red-500 hover:text-white" title="Clear Canvas">
+        <!-- Actions -->
+        <div class="flex items-center space-x-1 pl-1">
+             <button id="users-btn" class="tool-btn p-2 rounded-md hover:bg-slate-200 hidden" title="Manage Users">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+             </button>
+             <button id="lock-btn" class="tool-btn p-2 rounded-md hover:bg-slate-200 hidden" title="Lock Board">
+                <svg id="lock-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+             </button>
+             <button id="export-btn" class="p-2 rounded-md hover:bg-slate-200" title="Export as PNG">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            </button>
+            <button id="clear-canvas" class="p-2 rounded-md hover:bg-red-500 hover:text-white" title="Clear Canvas">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
             </button>
         </div>
     </div>
 
-    <!-- User ID Display -->
-    <div id="user-info" class="fixed bottom-4 left-4 bg-white shadow-lg rounded-lg p-3 px-4 z-10 text-sm text-slate-700 space-y-2">
-        <div id="wb-status" class="font-medium">Loading...</div>
-        <button id="wb-sign-in" class="w-full rounded-md bg-blue-500 px-3 py-1 text-white text-sm font-semibold hover:bg-blue-600">Sign in with Google</button>
-        <button id="wb-sign-out" class="hidden w-full rounded-md bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-300">Sign out</button>
-    </div>
-
-    <!-- Text Input Modal -->
-    <div id="text-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
-        <div class="bg-white p-6 rounded-lg shadow-xl">
-            <h3 class="text-lg font-medium mb-4">Enter Text</h3>
-            <input type="text" id="text-input" class="w-full border border-slate-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
-            <div class="mt-4 flex justify-end space-x-2">
-                <button id="cancel-text" class="px-4 py-2 rounded-md bg-slate-200 hover:bg-slate-300">Cancel</button>
-                <button id="submit-text" class="px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600">Add Text</button>
-            </div>
+    <!-- Name Prompt Modal -->
+    <div id="name-modal" class="fixed inset-0 bg-slate-900 bg-opacity-80 flex items-center justify-center z-30">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center w-full max-w-sm">
+            <h3 class="text-xl font-medium mb-4">Welcome to the Whiteboard!</h3>
+            <p class="text-slate-600 mb-4">Please enter your name to join.</p>
+            <input type="text" id="name-input" class="w-full border border-slate-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Your Name..." maxlength="20">
+            <button id="join-btn" class="mt-4 w-full px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 disabled:bg-slate-400">Join Board</button>
         </div>
     </div>
 
+    <!-- User List Panel (Host only) -->
+    <div id="users-panel" class="hidden fixed top-20 right-4 bg-white shadow-lg rounded-lg p-4 w-64 z-20">
+        <h3 class="font-bold text-lg mb-2">Participants</h3>
+        <ul id="user-list" class="space-y-2">
+            <!-- User items will be generated here -->
+        </ul>
+    </div>
+
+    <!-- User ID Display -->
+    <div id="user-info" class="fixed bottom-4 left-4 bg-white shadow-lg rounded-lg p-2 px-4 z-10 text-sm text-slate-700">
+        Loading...
+    </div>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, getDocs, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Initialization ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
-          authDomain: "save-a9ea5.firebaseapp.com",
-          projectId: "save-a9ea5",
-          storageBucket: "save-a9ea5.firebasestorage.app",
-          messagingSenderId: "266526082951",
-          appId: "1:266526082951:web:dea4164197d3ff3f02f522"
+        const userProvidedConfig = {
+          apiKey: "AIzaSyCureZTEOUOdwc6ZVv0oO0BRovLBFlHmmA",
+          authDomain: "whiteboard-cf44a.firebaseapp.com",
+          projectId: "whiteboard-cf44a",
+          storageBucket: "whiteboard-cf44a.appspot.com",
+          messagingSenderId: "107168944170",
+          appId: "1:107168944170:web:607e9d1ec7ee70bf3b3353",
+          measurementId: "G-3NRK8DREK4"
         };
+        
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : userProvidedConfig;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-local-whiteboard';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const TEACHERS = [
-          'dmaher42@hotmail.com',
-          // 'your.name@mbhs.sa.edu.au',
-        ];
-        const teacherEmails = TEACHERS.map(email => email.toLowerCase());
-        const isTeacherEmail = (email = '') => teacherEmails.includes(email.toLowerCase());
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-local-whiteboard';
-
-        let userId = null;
+        let userId;
+        let userName;
         const boardCollectionPath = `/artifacts/${appId}/public/data/board`;
+        const cursorCollectionPath = `/artifacts/${appId}/public/data/cursors`;
+        const sessionDocPath = `/artifacts/${appId}/public/data/session/details`;
+        
         const boardCollection = collection(db, boardCollectionPath);
+        const cursorCollection = collection(db, cursorCollectionPath);
+        const sessionDoc = doc(db, sessionDocPath);
 
         // --- Canvas Setup ---
         const canvas = document.getElementById('whiteboard');
         const ctx = canvas.getContext('2d');
-        canvas.style.pointerEvents = 'none';
-        let isDrawing = false;
         let currentTool = 'pen';
         let currentColor = 'black';
         let currentWidth = 5;
+
+        // --- State Management ---
+        let isDrawing = false;
+        let isDragging = false;
         let currentPath = [];
+        let drawingStartCoords = { x: 0, y: 0 };
+        let selectedObjectId = null;
+        let dragStartCoords = { x: 0, y: 0 };
+        let undoStack = [];
+        let redoStack = [];
+        let liveCursors = new Map();
+        let lastCursorUpdateTime = 0;
+        let objectsToDelete = new Set();
+        let isHost = false;
+        let isBoardLocked = false;
+        let mutedUsers = [];
+        let isMuted = false;
 
         // --- UI Elements ---
+        const nameModal = document.getElementById('name-modal');
+        const nameInput = document.getElementById('name-input');
+        const joinBtn = document.getElementById('join-btn');
+        const selectTool = document.getElementById('select-tool');
         const penTool = document.getElementById('pen-tool');
-        const eraserTool = document.getElementById('eraser-tool');
         const textTool = document.getElementById('text-tool');
-        const stickyNoteTool = document.getElementById('sticky-note-tool');
+        const rectangleTool = document.getElementById('rectangle-tool');
+        const eraserTool = document.getElementById('eraser-tool');
+        const stickyNoteTool = document.getElementById('sticky-tool');
         const colorPalette = document.getElementById('color-palette');
         const lineWidthSlider = document.getElementById('line-width');
         const clearCanvasBtn = document.getElementById('clear-canvas');
-        if (clearCanvasBtn) clearCanvasBtn.style.display = 'none';
-        const statusText = document.getElementById('wb-status');
-        const signInBtn = document.getElementById('wb-sign-in');
-        const signOutBtnEl = document.getElementById('wb-sign-out');
-        const textModal = document.getElementById('text-modal');
-        const textInput = document.getElementById('text-input');
-        const cancelTextBtn = document.getElementById('cancel-text');
-        const submitTextBtn = document.getElementById('submit-text');
+        const exportBtn = document.getElementById('export-btn');
+        const userInfo = document.getElementById('user-info');
+        const textEditor = document.getElementById('text-editor');
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        const lockBtn = document.getElementById('lock-btn');
+        const lockIcon = document.getElementById('lock-icon');
+        const usersBtn = document.getElementById('users-btn');
+        const usersPanel = document.getElementById('users-panel');
+        const userList = document.getElementById('user-list');
         
-        let textCoords = { x: 0, y: 0 };
-        const processedDocs = new Set(); // To prevent re-drawing
-        let localDrawingCache = []; // Cache for redrawing on resize
-        let unsubscribeBoard = null;
-
-        function startLogin() {
-            const provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
-            if (statusText) statusText.textContent = 'Opening Google sign-in...';
-            signInBtn?.setAttribute('disabled', 'true');
-
-            signInWithPopup(auth, provider)
-                .then(() => console.debug('[whiteboard] popup sign-in success'))
-                .catch(async (error) => {
-                    console.warn('[whiteboard] popup sign-in failed, attempting redirect', error.code, error.message);
-                    if (
-                        error.code === 'auth/operation-not-supported-in-this-environment' ||
-                        error.code === 'auth/popup-blocked' ||
-                        error.code === 'auth/popup-closed-by-user' ||
-                        error.code === 'auth/auth-domain-config-required'
-                    ) {
-                        await signInWithRedirect(auth, provider);
-                        return;
-                    }
-                    alert('Sign-in failed. Check Firebase authorized domains and try again.');
-                    if (statusText) statusText.textContent = 'Sign-in failed. Please try again.';
-                })
-                .finally(() => {
-                    signInBtn?.removeAttribute('disabled');
-                });
-        }
-
-        signInBtn?.addEventListener('click', startLogin);
-        signOutBtnEl?.addEventListener('click', () => signOut(auth));
-        window.whiteboardStartGoogleSignIn = () => startLogin();
-
-        function attachBoardListener() {
-            if (unsubscribeBoard) return;
-            processedDocs.clear();
-            localDrawingCache = [];
-            redrawCanvas();
-            unsubscribeBoard = onSnapshot(
-                query(boardCollection),
-                (snapshot) => {
-                    let hasChanges = false;
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            hasChanges = true;
-                            const data = change.doc.data();
-                            const docId = change.doc.id;
-
-                            if(!processedDocs.has(docId)) {
-                                localDrawingCache.push(data); // Add to local cache for resize
-                                if (data.type === 'pen' || data.type === 'eraser') {
-                                    drawFromData(data);
-                                } else if (data.type === 'text') {
-                                    drawTextFromData(data);
-                                } else if (data.type === 'sticky') {
-                                    drawStickyNoteFromData(data);
-                                }
-                                processedDocs.add(docId);
-                            }
-                        }
-                    });
-
-                    if (snapshot.empty && hasChanges === false && localDrawingCache.length > 0) {
-                        // This handles the case where the whole collection was deleted.
-                        processedDocs.clear();
-                        localDrawingCache = [];
-                        redrawCanvas();
-                    }
-
-                },
-                (error) => {
-                    console.error('Authentication or Firestore setup failed:', error);
-                    if (statusText) statusText.textContent = 'Error connecting. Please refresh.';
-                }
-            );
-        }
-
-        function detachBoardListener() {
-            if (unsubscribeBoard) {
-                unsubscribeBoard();
-                unsubscribeBoard = null;
-            }
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                userId = null;
-                canvas.style.pointerEvents = 'none';
-                if (statusText) statusText.textContent = 'Please sign in with your @mbhs.sa.edu.au account.';
-                signInBtn?.classList.remove('hidden');
-                signInBtn?.removeAttribute('disabled');
-                signOutBtnEl?.classList.add('hidden');
-                if (clearCanvasBtn) clearCanvasBtn.style.display = 'none';
-                detachBoardListener();
-                processedDocs.clear();
-                localDrawingCache = [];
-                redrawCanvas();
-                return;
-            }
-
-            const email = (user.email || '').toLowerCase();
-            const domainOK = email.endsWith('@mbhs.sa.edu.au');
-            const isTeacher = isTeacherEmail(email);
-
-            if (!domainOK && !isTeacher) {
-                alert('Please sign in with your @mbhs.sa.edu.au account.');
-                await signOut(auth);
-                return;
-            }
-
-            userId = user.uid;
-            canvas.style.pointerEvents = 'auto';
-            if (statusText) {
-                statusText.innerHTML = `Signed in as <strong>${email}</strong><br><span class="text-xs text-slate-500">ID: ${user.uid}</span>`;
-            }
-            signInBtn?.classList.add('hidden');
-            signOutBtnEl?.classList.remove('hidden');
-            if (clearCanvasBtn) clearCanvasBtn.style.display = isTeacher ? '' : 'none';
-
-            attachBoardListener();
-        });
+        const processedDocs = new Set(); 
+        let localDrawingCache = new Map();
+        let currentlyEditingNoteId = null;
+        let lastStickyCreationTime = 0; // Cooldown for sticky notes
+        const STICKY_NOTE_LIMIT = 20; // Max sticky notes per user
 
         // --- Canvas Logic ---
         function setCanvasSize() {
@@ -283,133 +238,216 @@
         }
 
         function getEventCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
             if (event.touches && event.touches.length > 0) {
-                return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+                return { x: event.touches[0].clientX - rect.left, y: event.touches[0].clientY - rect.top };
             }
-            return { x: event.clientX, y: event.clientY };
+            return { x: event.clientX - rect.left, y: event.clientY - rect.top };
         }
         
-        function startDrawing(e) {
-            isDrawing = true;
-            const { x, y } = getEventCoordinates(e);
-            currentPath = [{ x, y }];
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.strokeStyle = currentColor;
-            ctx.lineWidth = currentWidth;
-            if (currentTool === 'eraser') {
-                 ctx.globalCompositeOperation = 'destination-out';
-                 ctx.lineWidth = currentWidth * 2;
-            } else {
-                 ctx.globalCompositeOperation = 'source-over';
+        // --- Database Operations ---
+        async function saveToFirestore(data) {
+             try {
+                const docRef = await addDoc(boardCollection, data);
+                return docRef.id;
+            } catch (err) {
+                console.error("Error writing document: ", err);
             }
         }
 
-        function draw(e) {
-            if (!isDrawing) return;
-            const { x, y } = getEventCoordinates(e);
-            currentPath.push({ x, y });
-            ctx.lineTo(x, y);
-            ctx.stroke();
+        async function updateFirestoreDoc(docId, data) {
+            const docRef = doc(db, boardCollectionPath, docId);
+            await updateDoc(docRef, data);
         }
 
-        function stopDrawing() {
-            if (!isDrawing) return;
-            isDrawing = false;
-            ctx.closePath();
-            
-            if (currentPath.length > 1) {
-                saveToFirestore({
-                    type: currentTool,
-                    path: currentPath,
-                    color: currentColor,
-                    width: currentWidth,
-                    userId: userId
-                });
-            }
-            currentPath = [];
+        async function deleteFromFirestore(docId) {
+            const docRef = doc(db, boardCollectionPath, docId);
+            await deleteDoc(docRef);
+        }
+        
+        async function updateCursorPosition(x, y) {
+            if (!userId || !userName) return;
+            const cursorRef = doc(db, cursorCollectionPath, userId);
+            await setDoc(cursorRef, { x, y, name: userName, lastSeen: Date.now() }, { merge: true });
         }
 
-        function saveToFirestore(data) {
-             if (!auth.currentUser) {
-                 console.warn("Skipping save: no authenticated user");
-                 return;
-             }
-             addDoc(boardCollection, data).catch(err => console.error("Error writing document: ", err));
+
+        // --- Drawing Functions ---
+        function drawObject(item) {
+            if (item.type === 'pen') drawPath(item);
+            else if (item.type === 'sticky') drawStickyNoteFromData(item);
+            else if (item.type === 'rectangle') drawRectangle(item);
+            else if (item.type === 'text') drawTextFromData(item);
         }
 
-        function drawFromData(data) {
+        function drawPath(data) {
             ctx.beginPath();
             const path = data.path;
             if (!path || path.length < 1) return;
-            
             ctx.moveTo(path[0].x, path[0].y);
-            
-            if (data.type === 'eraser') {
-                 ctx.globalCompositeOperation = 'destination-out';
-                 ctx.lineWidth = data.width * 2;
-                 ctx.strokeStyle = '#000000'; // Eraser color doesn't matter
-            } else { // 'pen'
-                 ctx.globalCompositeOperation = 'source-over';
-                 ctx.lineWidth = data.width;
-                 ctx.strokeStyle = data.color;
-            }
-            
-            path.forEach(point => {
-                ctx.lineTo(point.x, point.y);
-            });
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.lineWidth = data.width;
+            ctx.strokeStyle = data.color;
+            path.forEach(point => ctx.lineTo(point.x, point.y));
             ctx.stroke();
             ctx.closePath();
-            // Reset composite operation
-            ctx.globalCompositeOperation = 'source-over';
         }
         
         function drawTextFromData(data) {
             ctx.globalCompositeOperation = 'source-over';
             ctx.font = `${data.size}px Inter`;
             ctx.fillStyle = data.color;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
             ctx.fillText(data.text, data.x, data.y);
         }
 
-        function drawStickyNoteFromData(data) {
-             ctx.globalCompositeOperation = 'source-over';
-             const padding = 10;
-             const fontSize = 16;
-             ctx.font = `${fontSize}px Inter`;
-             const textWidth = ctx.measureText(data.text).width;
-             const boxWidth = textWidth + padding * 2;
-             const boxHeight = fontSize + padding * 2;
-
-             // Draw background
-             ctx.fillStyle = data.bgColor;
-             ctx.fillRect(data.x - padding, data.y - fontSize - padding/2, boxWidth, boxHeight);
-             
-             // Draw text
-             ctx.fillStyle = data.color;
-             ctx.fillText(data.text, data.x, data.y);
+        function drawRectangle(data) {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = data.color;
+            ctx.lineWidth = data.width;
+            ctx.strokeRect(data.x, data.y, data.rectWidth, data.rectHeight);
         }
 
-        // --- Tool Selection Logic ---
+        function getLines(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            let lines = [];
+            if (words.length === 0) return [''];
+            let currentLine = words[0] || '';
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        function getObjectBounds(item) {
+            if (item.type === 'sticky') {
+                const padding = 12;
+                const fontSize = 16;
+                const lineHeight = 20;
+                const maxWidth = 200;
+                const attributionHeight = 18;
+                ctx.font = `${fontSize}px Inter`;
+                const lines = getLines(ctx, item.text || " ", maxWidth);
+                const longestLine = lines.reduce((a, b) => ctx.measureText(a).width > ctx.measureText(b).width ? a : b, "");
+                const textWidth = ctx.measureText(longestLine).width;
+                const boxWidth = Math.max(100, textWidth + padding * 2);
+                const boxHeight = (lines.length * lineHeight) + (padding * 2) - (lineHeight - fontSize) + 4 + attributionHeight;
+                const startX = item.x - boxWidth / 2;
+                const startY = item.y - boxHeight / 2;
+                return { x: startX, y: startY, width: boxWidth, height: boxHeight };
+            } else if (item.type === 'pen') {
+                if (!item.path || item.path.length === 0) return null;
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                item.path.forEach(p => {
+                    minX = Math.min(minX, p.x);
+                    minY = Math.min(minY, p.y);
+                    maxX = Math.max(maxX, p.x);
+                    maxY = Math.max(maxY, p.y);
+                });
+                const padding = item.width;
+                return { x: minX - padding, y: minY - padding, width: (maxX - minX) + padding * 2, height: (maxY - minY) + padding * 2 };
+            } else if (item.type === 'rectangle') {
+                return { x: item.x, y: item.y, width: item.rectWidth, height: item.rectHeight };
+            } else if (item.type === 'text') {
+                ctx.font = `${item.size}px Inter`;
+                const metrics = ctx.measureText(item.text || " ");
+                return { x: item.x, y: item.y, width: metrics.width, height: item.size };
+            }
+            return null;
+        }
+
+        function drawStickyNoteFromData(data) {
+             const bounds = getObjectBounds(data);
+             if (!bounds) return;
+             ctx.globalCompositeOperation = 'source-over';
+
+             ctx.fillStyle = data.bgColor;
+             ctx.shadowColor = 'rgba(0,0,0,0.15)';
+             ctx.shadowBlur = 8;
+             ctx.shadowOffsetY = 4;
+             ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+             ctx.shadowColor = 'transparent';
+
+             ctx.fillStyle = data.color;
+             ctx.font = `16px Inter`;
+             ctx.textAlign = 'left';
+             ctx.textBaseline = 'top';
+             
+             const lines = getLines(ctx, data.text, 200);
+             for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], bounds.x + 12, bounds.y + 12 + (i * 20));
+             }
+
+             if (data.userName) {
+                const attributionText = `By: ${data.userName}`;
+                ctx.font = `10px Inter`;
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'right';
+                ctx.fillText(attributionText, bounds.x + bounds.width - 12, bounds.y + bounds.height - 15);
+             }
+        }
+        
+        function drawCursors() {
+            liveCursors.forEach((cursor, id) => {
+                if (id === userId || Date.now() - cursor.lastSeen > 30000) { 
+                    liveCursors.delete(id);
+                    return;
+                };
+                ctx.beginPath();
+                ctx.moveTo(cursor.x, cursor.y);
+                ctx.lineTo(cursor.x + 1, cursor.y + 14);
+                ctx.lineTo(cursor.x + 5, cursor.y + 11);
+                ctx.lineTo(cursor.x + 8, cursor.y + 17);
+                ctx.lineTo(cursor.x + 10, cursor.y + 16);
+                ctx.lineTo(cursor.x + 7, cursor.y + 11);
+                ctx.lineTo(cursor.x + 11, cursor.y + 9);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fill();
+                ctx.font = '12px Inter';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillText(cursor.name, cursor.x + 16, cursor.y + 12);
+            });
+        }
+
+        // --- Tool & UI Logic ---
         function setActiveTool(tool) {
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`${tool}-tool`).classList.add('active');
             currentTool = tool;
+            
+            selectedObjectId = null;
+            if (tool !== 'sticky' && tool !== 'text' && currentlyEditingNoteId) {
+                saveAndHideEditor();
+            }
+            redrawCanvas();
+
+            switch (tool) {
+                case 'pen': case 'rectangle': canvas.style.cursor = 'crosshair'; break;
+                case 'text': canvas.style.cursor = 'text'; break;
+                case 'eraser': canvas.style.cursor = 'cell'; break;
+                case 'sticky': canvas.style.cursor = 'copy'; break;
+                case 'select': canvas.style.cursor = 'default'; break;
+                default: canvas.style.cursor = 'default';
+            }
         }
 
+        selectTool.addEventListener('click', () => setActiveTool('select'));
         penTool.addEventListener('click', () => setActiveTool('pen'));
+        textTool.addEventListener('click', () => setActiveTool('text'));
+        rectangleTool.addEventListener('click', () => setActiveTool('rectangle'));
         eraserTool.addEventListener('click', () => setActiveTool('eraser'));
-        
-        textTool.addEventListener('click', () => {
-             setActiveTool('text');
-             alert("Click on the canvas where you want to add text.");
-        });
-        stickyNoteTool.addEventListener('click', () => {
-             setActiveTool('sticky');
-             alert("Click on the canvas where you want to add a sticky note.");
-        });
+        stickyNoteTool.addEventListener('click', () => setActiveTool('sticky'));
 
-
-        // --- Color and Width ---
         colorPalette.addEventListener('click', (e) => {
             if (e.target.dataset.color) {
                 currentColor = e.target.dataset.color;
@@ -418,78 +456,408 @@
             }
         });
 
-        lineWidthSlider.addEventListener('input', (e) => {
-            currentWidth = e.target.value;
-        });
+        lineWidthSlider.addEventListener('input', (e) => { currentWidth = e.target.value; });
         
-        // --- Modal Logic ---
-        function showTextModal(x, y) {
-            textCoords = { x, y };
-            textModal.classList.remove('hidden');
-            textInput.value = '';
-            textInput.focus();
+        function showTextEditor(docId, data) {
+            if(isBoardLocked && !isHost) return;
+            currentlyEditingNoteId = docId;
+            
+            let bounds;
+            if (data.type === 'sticky') {
+                bounds = getObjectBounds(data);
+                textEditor.style.left = `${bounds.x}px`;
+                textEditor.style.top = `${bounds.y}px`;
+                textEditor.style.width = `${bounds.width}px`;
+                textEditor.style.height = `${bounds.height}px`;
+                textEditor.style.backgroundColor = '#fff3bf';
+                textEditor.style.color = '#000000';
+                textEditor.style.fontSize = '16px';
+                textEditor.style.outline = '2px solid #3b82f6';
+            } else if (data.type === 'text') {
+                bounds = getObjectBounds({ ...data, text: data.text || " "});
+                textEditor.style.left = `${data.x}px`;
+                textEditor.style.top = `${data.y}px`;
+                textEditor.style.width = `${bounds.width + 20}px`;
+                textEditor.style.height = 'auto';
+                textEditor.style.backgroundColor = 'transparent';
+                textEditor.style.color = data.color;
+                textEditor.style.fontSize = `${data.size}px`;
+                textEditor.style.outline = '1px dashed #3b82f6';
+            }
+
+            textEditor.value = data.text;
+            textEditor.classList.remove('hidden');
+            textEditor.focus();
+            
+            // Auto-resize textarea
+            textEditor.style.height = 'auto';
+            textEditor.style.height = textEditor.scrollHeight + 3 + 'px';
         }
 
-        function hideTextModal() {
-            textModal.classList.add('hidden');
+        function saveAndHideEditor() {
+            if (!currentlyEditingNoteId) return;
+            const item = localDrawingCache.get(currentlyEditingNoteId);
+            const newText = textEditor.value;
+
+            if (!newText.trim()) {
+                deleteFromFirestore(currentlyEditingNoteId);
+            } else if (item.text !== newText) {
+                item.text = newText;
+                updateFirestoreDoc(currentlyEditingNoteId, { text: newText });
+            }
+            
+            textEditor.classList.add('hidden');
+            currentlyEditingNoteId = null;
+            redrawCanvas();
+            setActiveTool('select');
         }
 
-        cancelTextBtn.addEventListener('click', hideTextModal);
-        submitTextBtn.addEventListener('click', () => {
-            const text = textInput.value.trim();
-            if(text) {
+        textEditor.addEventListener('input', () => {
+            if (!currentlyEditingNoteId) return;
+            const item = localDrawingCache.get(currentlyEditingNoteId);
+            item.text = textEditor.value;
+            
+            textEditor.style.height = 'auto';
+            textEditor.style.height = textEditor.scrollHeight + 'px';
+
+            if (item.type === 'sticky') {
+                const bounds = getObjectBounds(item);
+                textEditor.style.width = `${bounds.width}px`;
+                textEditor.style.height = `${bounds.height}px`;
+                redrawCanvas();
+                drawStickyNoteFromData(item);
+            } else if(item.type === 'text') {
+                 const bounds = getObjectBounds(item);
+                 textEditor.style.width = `${bounds.width + 20}px`;
+            }
+        });
+
+        textEditor.addEventListener('blur', saveAndHideEditor);
+        
+        // --- Core Event Handling ---
+        function getObjectAtPosition(x, y) {
+            const reversedItems = Array.from(localDrawingCache.entries()).reverse();
+            for (const [id, item] of reversedItems) {
+                const bounds = getObjectBounds(item);
+                if (bounds && x > bounds.x && x < bounds.x + bounds.width && y > bounds.y && y < bounds.y + bounds.height) {
+                    return { id, item };
+                }
+            }
+            return null;
+        }
+
+        function handleMouseDown(e) {
+            if((isBoardLocked || isMuted) && !isHost) return;
+
+            const { x, y } = getEventCoordinates(e);
+            drawingStartCoords = { x, y };
+
+            if (currentlyEditingNoteId) {
+                const editorBounds = textEditor.getBoundingClientRect();
+                const canvasRect = canvas.getBoundingClientRect();
+                if (x < editorBounds.left - canvasRect.left || x > editorBounds.right - canvasRect.left || y < editorBounds.top - canvasRect.top || y > editorBounds.bottom - canvasRect.top) {
+                    saveAndHideEditor();
+                }
+                return;
+            }
+
+            if (currentTool === 'select') {
+                const clickedObject = getObjectAtPosition(x, y);
+                if (clickedObject) {
+                    selectedObjectId = clickedObject.id;
+                    isDragging = true;
+                    dragStartCoords = { x, y };
+                    canvas.style.cursor = 'grabbing';
+                } else {
+                    selectedObjectId = null;
+                }
+                redrawCanvas();
+            } else { 
+                isDrawing = true;
+                if (currentTool === 'pen') currentPath = [{ x, y }];
+                if (currentTool === 'eraser') objectsToDelete.clear();
+            }
+        }
+
+        function handleMouseMove(e) {
+             if((isBoardLocked || isMuted) && !isHost) return;
+             
+            const { x, y } = getEventCoordinates(e);
+            
+            const now = Date.now();
+            if (now - lastCursorUpdateTime > 50) {
+                updateCursorPosition(x, y);
+                lastCursorUpdateTime = now;
+            }
+
+            if (isDragging && selectedObjectId) {
+                const dx = x - dragStartCoords.x;
+                const dy = y - dragStartCoords.y;
+                const item = localDrawingCache.get(selectedObjectId);
+                
+                if (item.type === 'sticky' || item.type === 'rectangle' || item.type === 'text') {
+                    item.x += dx;
+                    item.y += dy;
+                } else if (item.type === 'pen') {
+                    item.path.forEach(p => {
+                        p.x += dx;
+                        p.y += dy;
+                    });
+                }
+                dragStartCoords = { x, y };
+                redrawCanvas();
+            } else if (isDrawing) {
+                if (currentTool === 'pen') {
+                    currentPath.push({ x, y });
+                    redrawCanvas();
+                    drawPath({ type: currentTool, path: currentPath, color: currentColor, width: currentWidth });
+                } else if (currentTool === 'rectangle') {
+                    redrawCanvas();
+                    const rectWidth = x - drawingStartCoords.x;
+                    const rectHeight = y - drawingStartCoords.y;
+                    drawRectangle({ type: 'rectangle', x: drawingStartCoords.x, y: drawingStartCoords.y, rectWidth, rectHeight, color: currentColor, width: currentWidth });
+                } else if (currentTool === 'eraser') {
+                    const object = getObjectAtPosition(x,y);
+                    if(object && (object.item.userId === userId || isHost)) {
+                        objectsToDelete.add(object.id);
+                    }
+                    redrawCanvas();
+                }
+            } else if (currentTool === 'select') {
+                 canvas.style.cursor = getObjectAtPosition(x, y) ? 'grab' : 'default';
+            }
+        }
+
+        async function handleMouseUp(e) {
+            if((isBoardLocked || isMuted) && !isHost) return;
+
+            if (isDragging && selectedObjectId) {
+                const item = localDrawingCache.get(selectedObjectId);
+                if (item.type === 'sticky' || item.type === 'rectangle' || item.type === 'text') {
+                    updateFirestoreDoc(selectedObjectId, { x: item.x, y: item.y });
+                } else if (item.type === 'pen') {
+                    updateFirestoreDoc(selectedObjectId, { path: item.path });
+                }
+                canvas.style.cursor = 'grab';
+            } else if (isDrawing) {
+                let docId;
+                if (currentTool === 'pen' && currentPath.length > 1) {
+                    docId = await saveToFirestore({ type: currentTool, path: currentPath, color: currentColor, width: currentWidth, userId, userName });
+                } else if (currentTool === 'rectangle') {
+                    const { x, y } = getEventCoordinates(e);
+                    const rectWidth = x - drawingStartCoords.x;
+                    const rectHeight = y - drawingStartCoords.y;
+                     if (Math.abs(rectWidth) > 5 || Math.abs(rectHeight) > 5) {
+                         docId = await saveToFirestore({ type: 'rectangle', x: drawingStartCoords.x, y: drawingStartCoords.y, rectWidth, rectHeight, color: currentColor, width: currentWidth, userId, userName });
+                     }
+                } else if (currentTool === 'eraser') {
+                    objectsToDelete.forEach(id => deleteFromFirestore(id));
+                }
+                if(docId) {
+                    undoStack.push(docId);
+                    redoStack = [];
+                    updateUndoRedoButtons();
+                }
+                redrawCanvas();
+            }
+            isDrawing = false;
+            isDragging = false;
+            currentPath = [];
+            objectsToDelete.clear();
+        }
+
+        async function handleCanvasClick(e) {
+            if((isBoardLocked || isMuted) && !isHost) return;
+
+            const { x, y } = getEventCoordinates(e);
+
+            if (currentTool === 'sticky' || currentTool === 'text') {
+                if (currentTool === 'sticky') {
+                    let userStickyCount = 0;
+                    localDrawingCache.forEach(item => { if (item.type === 'sticky' && item.userId === userId) userStickyCount++; });
+                    if (userStickyCount >= STICKY_NOTE_LIMIT) return;
+
+                    const now = Date.now();
+                    if (now - lastStickyCreationTime < 500) return;
+                    lastStickyCreationTime = now;
+                }
+                
+                const type = currentTool;
                 const data = {
-                    type: currentTool, // 'text' or 'sticky'
-                    text: text,
-                    x: textCoords.x,
-                    y: textCoords.y,
-                    color: currentColor,
-                    size: currentWidth * 2 + 12, // Derive font size from line width
-                    userId: userId,
+                    type,
+                    text: '', x, y,
+                    color: type === 'sticky' ? '#000000' : currentColor,
+                    bgColor: type === 'sticky' ? '#fff3bf' : 'transparent',
+                    size: 16 + currentWidth * 2,
+                    userId,
+                    userName
                 };
-                 if (currentTool === 'sticky') {
-                    data.bgColor = '#fff3bf'; // A nice yellow for sticky notes
-                 }
-                saveToFirestore(data);
-            }
-            hideTextModal();
-            setActiveTool('pen'); // Revert to pen tool
-        });
-
-        // --- Canvas Events ---
-        function handleCanvasClick(e) {
-            if (currentTool === 'text' || currentTool === 'sticky') {
-                const { x, y } = getEventCoordinates(e);
-                showTextModal(x,y);
+                
+                const docId = await saveToFirestore(data);
+                if (docId) {
+                    localDrawingCache.set(docId, data);
+                    undoStack.push(docId);
+                    redoStack = [];
+                    updateUndoRedoButtons();
+                    showTextEditor(docId, data);
+                }
+            } else if (currentTool === 'select') {
+                const clickedObject = getObjectAtPosition(x, y);
+                if (clickedObject && (clickedObject.item.type === 'sticky' || clickedObject.item.type === 'text')) {
+                    setTimeout(() => {
+                        if (!isDragging) showTextEditor(clickedObject.id, clickedObject.item);
+                    }, 50);
+                }
             }
         }
         
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseout', handleMouseUp);
         canvas.addEventListener('click', handleCanvasClick);
         
-        // Touch events
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleMouseDown(e); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMouseMove(e); });
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleMouseUp(e); });
 
         window.addEventListener('resize', setCanvasSize);
 
-        // --- Clear Canvas ---
-        async function clearFirestoreCollection() {
-             const querySnapshot = await getDocs(boardCollection);
-             const deletePromises = [];
-             querySnapshot.forEach((docSnap) => {
-                 deletePromises.push(deleteDoc(doc(db, boardCollectionPath, docSnap.id)));
-             });
-             await Promise.all(deletePromises);
+        // --- Undo/Redo Logic ---
+        function updateUndoRedoButtons() {
+            undoBtn.disabled = undoStack.length === 0;
+            redoBtn.disabled = redoStack.length === 0;
+        }
+
+        function handleUndo() {
+            if (undoStack.length === 0) return;
+            const docIdToUndo = undoStack.pop();
+            redoStack.push(docIdToUndo);
+            const item = localDrawingCache.get(docIdToUndo);
+            if (item) item.hidden = true;
+            updateUndoRedoButtons();
+            redrawCanvas();
+        }
+
+        function handleRedo() {
+            if (redoStack.length === 0) return;
+            const docIdToRedo = redoStack.pop();
+            undoStack.push(docIdToRedo);
+            const item = localDrawingCache.get(docIdToRedo);
+            if (item) item.hidden = false;
+            updateUndoRedoButtons();
+            redrawCanvas();
         }
         
-        clearCanvasBtn?.addEventListener('click', () => {
-            if (!isTeacherEmail(auth.currentUser?.email || '')) {
-                alert('Teacher only');
+        undoBtn.addEventListener('click', handleUndo);
+        redoBtn.addEventListener('click', handleRedo);
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') { e.preventDefault(); handleUndo(); }
+            if (e.ctrlKey && e.key === 'y') { e.preventDefault(); handleRedo(); }
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (selectedObjectId) {
+                    const item = localDrawingCache.get(selectedObjectId);
+                    if (item && (item.userId === userId || isHost)) {
+                        e.preventDefault();
+                        deleteFromFirestore(selectedObjectId);
+                        selectedObjectId = null;
+                        redrawCanvas();
+                    }
+                }
+            }
+        });
+
+        // --- Host & Session Logic ---
+        lockBtn.addEventListener('click', () => {
+            if(!isHost) return;
+            const newLockState = !isBoardLocked;
+            setDoc(sessionDoc, { isLocked: newLockState }, { merge: true });
+        });
+        
+        usersBtn.addEventListener('click', () => {
+            if(isHost) usersPanel.classList.toggle('hidden');
+        });
+
+        function updateLockIcon(locked) {
+            if(locked) {
+                lockIcon.innerHTML = `<path d="M12 22a4 4 0 0 0 4-4H8a4 4 0 0 0 4 4z"/><path d="M16 12H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><path d="M12 12V6a4 4 0 0 1 8 0c0 2.21-1.79 4-4 4-2.21 0-4-1.79-4-4a4 4 0 0 1 8 0c0 2.21-1.79 4-4 4z"/>`;
+                lockBtn.title = "Unlock Board";
+            } else {
+                lockIcon.innerHTML = `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>`;
+                 lockBtn.title = "Lock Board";
+            }
+        }
+        
+        async function toggleMuteUser(targetUserId) {
+            const currentMuted = mutedUsers || [];
+            const isMuted = currentMuted.includes(targetUserId);
+            
+            let newMutedUsers;
+            if(isMuted) {
+                newMutedUsers = currentMuted.filter(id => id !== targetUserId);
+            } else {
+                newMutedUsers = [...currentMuted, targetUserId];
+            }
+            await setDoc(sessionDoc, { mutedUsers: newMutedUsers }, { merge: true });
+        }
+        
+        function renderUserList(participants) {
+            userList.innerHTML = '';
+            participants.forEach(p => {
+                const isMuted = mutedUsers.includes(p.id);
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between text-sm';
+                li.innerHTML = `
+                    <span>${p.name || p.id.substring(0,8) + '...'}</span>
+                    <button data-userid="${p.id}" class="mute-btn p-1 rounded-md hover:bg-slate-200">
+                        ${isMuted ? 
+                            `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>` : 
+                            `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`
+                        }
+                    </button>
+                `;
+                userList.appendChild(li);
+            });
+            document.querySelectorAll('.mute-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    toggleMuteUser(e.currentTarget.dataset.userid);
+                });
+            });
+        }
+
+        // --- Actions ---
+        function handleExport() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#f8fafc';
+            tempCtx.fillRect(0,0, tempCanvas.width, tempCanvas.height);
+            localDrawingCache.forEach(item => {
+                if(!item.hidden) drawObject(item);
+            });
+            const link = document.createElement('a');
+            link.download = `whiteboard-export-${Date.now()}.png`;
+            link.href = tempCanvas.toDataURL();
+            link.click();
+        }
+        
+        exportBtn.addEventListener('click', handleExport);
+        
+        async function clearFirestoreCollection() {
+             const querySnapshot = await getDocs(boardCollection);
+             await Promise.all(querySnapshot.docs.map(doc => deleteDoc(doc.ref)));
+             localDrawingCache.clear();
+             processedDocs.clear();
+             undoStack = [];
+             redoStack = [];
+             updateUndoRedoButtons();
+             redrawCanvas();
+        }
+        
+        clearCanvasBtn.addEventListener('click', () => {
+            if(!isHost) {
+                alert("Only the host can clear the board.");
                 return;
             }
             if(confirm('Are you sure you want to clear the entire whiteboard for everyone?')) {
@@ -497,21 +865,156 @@
             }
         });
         
-        // --- Redraw on resize ---
+        // --- Main Redraw Loop ---
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            localDrawingCache.forEach(item => {
-                if (item.type === 'pen' || item.type === 'eraser') {
-                    drawFromData(item);
-                } else if (item.type === 'text') {
-                    drawTextFromData(item);
-                } else if (item.type === 'sticky') {
-                    drawStickyNoteFromData(item);
-                }
+            localDrawingCache.forEach((item, id) => {
+                if (item.hidden) return;
+                drawObject(item);
             });
+
+            if (selectedObjectId) {
+                const item = localDrawingCache.get(selectedObjectId);
+                if (item) {
+                    const bounds = getObjectBounds(item);
+                    if (bounds) {
+                        ctx.strokeStyle = '#3b82f6';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([6, 3]);
+                        ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+                        ctx.setLineDash([]);
+                    }
+                }
+            } else if (isDrawing && currentTool === 'eraser') {
+                objectsToDelete.forEach(id => {
+                    const item = localDrawingCache.get(id);
+                    if(item) {
+                        const bounds = getObjectBounds(item);
+                        if (bounds) {
+                            ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+                            ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+                        }
+                    }
+                });
+            }
+            
+            if ((isBoardLocked || isMuted) && !isHost) {
+                ctx.fillStyle = 'rgba(100, 116, 139, 0.1)'; // slate-500 with opacity
+                ctx.fillRect(0,0, canvas.width, canvas.height);
+                ctx.font = '24px Inter';
+                ctx.fillStyle = '#475569'; // slate-600
+                ctx.textAlign = 'center';
+                const message = isMuted ? "You have been muted by the host" : "Board is Locked";
+                ctx.fillText(message, canvas.width/2, canvas.height/2);
+            }
+            
+            drawCursors();
         }
         
-        setCanvasSize();
+        // --- Main Execution ---
+        function initializeBoard() {
+            nameModal.classList.add('hidden');
+
+            async function main() {
+                try {
+                    if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                    else await signInAnonymously(auth);
+
+                    userId = auth.currentUser.uid;
+                    userInfo.textContent = `${userName}`;
+                    updateCursorPosition(0,0); // Announce presence
+                    
+                    // --- Determine Host ---
+                    const sessionSnapshot = await getDoc(sessionDoc);
+                    if (!sessionSnapshot.exists() || !sessionSnapshot.data().hostId) {
+                        await setDoc(sessionDoc, { hostId: userId, isLocked: false, mutedUsers: [] }, { merge: true });
+                        isHost = true;
+                    } else {
+                        isHost = sessionSnapshot.data().hostId === userId;
+                    }
+                    userInfo.textContent += isHost ? ' (Host)' : '';
+                    if(isHost) {
+                        lockBtn.classList.remove('hidden');
+                        usersBtn.classList.remove('hidden');
+                    }
+
+
+                    // --- Listeners ---
+                    onSnapshot(query(boardCollection), (snapshot) => {
+                         snapshot.docChanges().forEach((change) => {
+                             const data = change.doc.data();
+                             const docId = change.doc.id;
+                             if (change.type === "added" && !processedDocs.has(docId)) {
+                                localDrawingCache.set(docId, data);
+                                processedDocs.add(docId);
+                             } else if (change.type === "modified") {
+                                 localDrawingCache.set(docId, data);
+                             } else if (change.type === "removed") {
+                                 localDrawingCache.delete(docId);
+                                 processedDocs.delete(docId);
+                             }
+                         });
+                         if (!isDragging && !currentlyEditingNoteId) redrawCanvas();
+                    });
+
+                    onSnapshot(query(cursorCollection), (snapshot) => {
+                        const activeParticipants = [];
+                        snapshot.forEach(doc => {
+                            if (Date.now() - doc.data().lastSeen < 30000) { // 30 second activity timeout
+                               if (doc.id !== userId) liveCursors.set(doc.id, doc.data());
+                               activeParticipants.push({ id: doc.id, ...doc.data() });
+                            } else {
+                               liveCursors.delete(doc.id);
+                            }
+                        });
+                        if (isHost) renderUserList(activeParticipants);
+                        if (!isDrawing) redrawCanvas();
+                    });
+
+                    onSnapshot(sessionDoc, (doc) => {
+                        const data = doc.data();
+                        if(data) {
+                           isBoardLocked = data.isLocked;
+                           mutedUsers = data.mutedUsers || [];
+                           isMuted = mutedUsers.includes(userId);
+                           updateLockIcon(isBoardLocked);
+                           if (isHost) renderUserList(Array.from(liveCursors.entries()).map(([id, data]) => ({id, ...data})));
+                           redrawCanvas();
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("Authentication or Firestore setup failed:", error);
+                    userInfo.textContent = "Error connecting. Please refresh.";
+                }
+
+                setCanvasSize();
+                setActiveTool('pen');
+            }
+
+            main();
+        }
+        
+        joinBtn.disabled = true;
+        nameInput.addEventListener('input', () => {
+            joinBtn.disabled = nameInput.value.trim().length === 0;
+        });
+
+        joinBtn.addEventListener('click', () => {
+            userName = nameInput.value.trim();
+            if(userName) {
+                initializeBoard();
+            }
+        });
+        
+        nameInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter' && !joinBtn.disabled) {
+                joinBtn.click();
+            }
+        });
+
+
     </script>
 </body>
 </html>
+
