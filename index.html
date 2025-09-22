@@ -83,54 +83,40 @@
       display:flex;
       align-items:center;
     }
-    .nav-links a,
-    .dropdown-btn {
+    .nav-links a {
       text-decoration:none;
       color:#222;
       padding:.4rem .65rem;
       border-radius:.4rem;
       font-weight:500;
     }
-    .nav-links a:hover,
-    .dropdown-btn:hover {
+    .nav-links a:hover {
       background:#f2f2f2;
     }
-    .dropdown { position:relative; }
-    .dropdown-btn {
-      background:none;
+    .unit-of-work {
+      display:flex;
+      align-items:center;
+    }
+    .unit-of-work .unit-next{
+      background:#111;
+      color:#fff;
       border:none;
+      border-radius:.5rem;
+      padding:.5rem .8rem;
       cursor:pointer;
+      font:inherit;
       display:inline-flex;
       align-items:center;
-      gap:.25rem;
+      gap:.35rem;
     }
-    .dropdown-menu {
-      position:absolute;
-      top:calc(100% + .25rem);
-      left:0;
-      min-width:260px;
-      max-width:88vw;
-      background:#fff;
-      border:1px solid #e6e6e6;
-      border-radius:.5rem;
-      box-shadow:0 6px 28px rgba(0,0,0,.08);
-      list-style:none;
-      margin:0;
-      padding:.4rem;
-      display:none;
-      z-index:40;
+    .unit-of-work .unit-next:hover{ opacity:.9; }
+    .dark .unit-of-work .unit-next{
+      background:#1e293b;
+      color:#f8fafc;
     }
-    .dropdown-menu a {
-      display:block;
-      padding:.5rem .6rem;
-      border-radius:.35rem;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      color:#222;
+    .dark .unit-of-work .unit-next:hover{
+      background:#0f172a;
     }
-    .dropdown-menu a:hover { background:#f7f7f7; }
-    .dropdown.open > .dropdown-menu { display:block; }
     .nav-links > .nav-utilities {
       display:flex;
       align-items:center;
@@ -167,17 +153,7 @@
       .nav-links.open { display:flex; }
       .nav-links > li { width:100%; }
       .nav-links a,
-      .dropdown-btn { width:100%; }
-      .dropdown-menu {
-        position:static;
-        box-shadow:none;
-        border:none;
-        padding-left:.5rem;
-      }
-      .dropdown-btn {
-        justify-content:space-between;
-        text-align:left;
-      }
+      .unit-of-work .unit-next { width:100%; }
       .nav-links > .nav-utilities {
         flex-direction:column;
         align-items:stretch;
@@ -201,21 +177,12 @@
       }
     }
     .dark .site-nav .brand,
-    .dark .nav-links a,
-    .dark .dropdown-btn {
+    .dark .nav-links a {
       color:#f1f5f9;
     }
-    .dark .nav-links a:hover,
-    .dark .dropdown-btn:hover {
+    .dark .nav-links a:hover {
       background:rgba(148,163,184,.2);
     }
-    .dark .dropdown-menu {
-      background:#0f172a;
-      border-color:rgba(148,163,184,.35);
-      box-shadow:0 12px 32px rgba(15,23,42,.45);
-    }
-    .dark .dropdown-menu a { color:#f1f5f9; }
-    .dark .dropdown-menu a:hover { background:rgba(148,163,184,.25); }
 
     .activity-card{
       background:linear-gradient(135deg,rgba(219,234,254,.55),rgba(248,250,252,.92));
@@ -273,20 +240,10 @@
         <ul class="nav-links" data-collapsible>
           <li><a href="#overview">Overview</a></li>
 
-          <li class="dropdown">
-            <button class="dropdown-btn"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    aria-controls="portfolio-menu">
-              Portfolio of Work ▼
+          <li class="unit-of-work">
+            <button class="unit-next" id="unit-next" aria-label="Go to next lesson">
+              Unit of Work ▶
             </button>
-            <ul id="portfolio-menu" class="dropdown-menu" role="menu">
-              <li role="none"><a role="menuitem" href="#portfolio">Portfolio Hub</a></li>
-              <li role="none"><a role="menuitem" href="whiteboard/index.html">Activity 1: Whiteboard</a></li>
-              <li role="none"><a role="menuitem" href="#activity-2">Activity 2: Video + Reflection</a></li>
-              <li role="none"><a role="menuitem" href="#activity-3">Activity 3: Reflection Panel</a></li>
-              <li role="none"><a role="menuitem" href="#activity-4">Activity 4: Constitution Game</a></li>
-            </ul>
           </li>
 
           <li><a href="#resources">Resources</a></li>
@@ -683,23 +640,11 @@
       const nav = document.querySelector('.site-nav');
       const navToggle = nav?.querySelector('.nav-toggle');
       const navLinks = nav?.querySelector('.nav-links');
-      const dropdown = nav?.querySelector('.dropdown');
-      const dropBtn = dropdown?.querySelector('.dropdown-btn');
-      const menu = document.getElementById('portfolio-menu');
-
-      function toggleDropdown(force) {
-        if (!dropdown || !dropBtn) return;
-        const isOpen = dropdown.classList.contains('open');
-        const shouldOpen = typeof force === 'boolean' ? force : !isOpen;
-        dropdown.classList.toggle('open', shouldOpen);
-        dropBtn.setAttribute('aria-expanded', String(shouldOpen));
-      }
 
       function setNavOpen(open) {
         if (!navLinks) return;
         navLinks.classList.toggle('open', open);
         navToggle?.setAttribute('aria-expanded', String(open));
-        if (!open) toggleDropdown(false);
       }
 
       navToggle?.addEventListener('click', (event) => {
@@ -709,29 +654,11 @@
       });
 
       navLinks?.addEventListener('click', (event) => {
-        const target = event.target instanceof Element ? event.target.closest('a') : null;
-        if (target) setNavOpen(false);
-      });
-
-      dropBtn?.addEventListener('click', (event) => {
-        event.stopPropagation();
-        toggleDropdown();
-      });
-
-      dropBtn?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
-          event.preventDefault();
-          toggleDropdown();
-        } else if (event.key === 'ArrowDown') {
-          event.preventDefault();
-          toggleDropdown(true);
-          const firstLink = menu?.querySelector('a');
-          if (firstLink) firstLink.focus();
-        }
+        const target = event.target instanceof Element ? event.target.closest('a, button') : null;
+        if (target && navLinks?.classList.contains('open')) setNavOpen(false);
       });
 
       document.addEventListener('click', (event) => {
-        if (dropdown && !dropdown.contains(event.target)) toggleDropdown(false);
         if (nav && navLinks?.classList.contains('open') && !nav.contains(event.target)) {
           setNavOpen(false);
         }
@@ -739,7 +666,6 @@
 
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-          toggleDropdown(false);
           setNavOpen(false);
         }
       });
@@ -770,6 +696,47 @@
 
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
+  </script>
+
+  <script>
+    const LESSONS = [
+      { title: "Portfolio Hub", url: "index.html#portfolio" },
+      { title: "Activity 1: Whiteboard", url: "whiteboard/index.html" },
+      { title: "Activity 2: Video + Reflection", url: "index.html#activity-2" },
+      { title: "Activity 3: Reflection Panel", url: "index.html#activity-3" },
+      { title: "Activity 4: Constitution Game", url: "index.html#activity-4" }
+    ];
+
+    function normalize(href) {
+      const u = new URL(href, window.location.href);
+      return u.pathname.replace(/\/+$/, "") + (u.hash || "");
+    }
+
+    function getCurrentLessonIndex() {
+      const here = normalize(window.location.pathname + window.location.hash);
+      let idx = LESSONS.findIndex((lesson) => normalize(lesson.url) === here);
+      if (idx !== -1) return idx;
+
+      const herePath = normalize(window.location.pathname);
+      idx = LESSONS.findIndex((lesson) => normalize(lesson.url).split("#")[0] === herePath);
+      return idx;
+    }
+
+    function goToNextLesson() {
+      let idx = getCurrentLessonIndex();
+      if (idx === -1) {
+        window.location.href = LESSONS[0].url;
+        return;
+      }
+      const next = idx + 1;
+      if (next < LESSONS.length) {
+        window.location.href = LESSONS[next].url;
+      } else {
+        alert("You’ve reached the end of the unit 👏");
+      }
+    }
+
+    document.getElementById('unit-next')?.addEventListener('click', goToNextLesson);
   </script>
 
   <!-- Writing panels autosave -->
