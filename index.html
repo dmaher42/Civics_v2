@@ -383,6 +383,60 @@
       </div>
     </section>
 
+    <!-- Save online + teacher dashboard -->
+    <!-- SAVE ONLINE (Students) -->
+    <section id="save-online" class="activity-card">
+      <div class="flex items-start gap-4">
+        <div class="h-10 w-10 rounded-xl grid place-items-center bg-emerald-100 text-emerald-700 font-bold">☁︎</div>
+        <div class="flex-1">
+          <h2 class="text-2xl font-extrabold mb-1">Save Your Work Online</h2>
+          <p class="text-sm text-slate-600 mb-3">Sign in, then your writing panels and game score will auto-save every few seconds.</p>
+
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <button id="msLogin" class="px-3 py-2 rounded-xl bg-brand-600 text-white">Sign in with Microsoft</button>
+            <button id="anonLogin" class="px-3 py-2 rounded-xl border border-slate-300">Use quick sign-in</button>
+            <button id="signOut" class="px-3 py-2 rounded-xl border border-slate-300">Sign out</button>
+            <span id="fbStatus" class="ml-auto text-sm text-slate-600">Not signed in</span>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-3">
+            <label class="text-sm">Your name
+              <input id="studentName" class="mt-1 w-full rounded-lg border border-slate-300 p-2" placeholder="e.g., Jordan Smith" />
+            </label>
+            <label class="text-sm">Class / Home group
+              <input id="studentClass" class="mt-1 w-full rounded-lg border border-slate-300 p-2" placeholder="e.g., 10A" />
+            </label>
+          </div>
+
+          <div class="mt-3 flex gap-2">
+            <button id="saveNow" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Save now</button>
+            <span id="saveHint" class="text-sm text-slate-500">Autosaves while you type.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEACHER DASHBOARD -->
+    <section id="teacher-dash" class="activity-card hidden">
+      <h3 class="text-xl font-extrabold mb-2">Teacher Dashboard — Latest Submissions</h3>
+      <div id="dashInfo" class="text-sm text-slate-600 mb-2"></div>
+      <div class="overflow-auto border border-slate-200 rounded-lg">
+        <table class="min-w-[640px] w-full text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="text-left p-2">Name</th>
+              <th class="text-left p-2">Class</th>
+              <th class="text-left p-2">Email</th>
+              <th class="text-left p-2">Updated</th>
+              <th class="text-left p-2">Score</th>
+              <th class="text-left p-2">Open</th>
+            </tr>
+          </thead>
+          <tbody id="dashRows"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Footer -->
     <footer id="resources" class="text-center mt-12">
       <h2 class="text-xl font-bold mb-4">📚 Resources</h2>
@@ -627,6 +681,175 @@
 
       loadQuestion();
     })();
+  </script>
+
+  <script type="module">
+    // --- Firebase (modular SDK via CDN) ---
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getAuth, onAuthStateChanged, signInAnonymously, signOut,
+      signInWithPopup, OAuthProvider
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import {
+      getFirestore, doc, setDoc, getDoc, serverTimestamp,
+      collection, query, orderBy, limit, getDocs
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    // === Your Firebase config ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
+      authDomain: "save-a9ea5.firebaseapp.com",
+      projectId: "save-a9ea5",
+      storageBucket: "save-a9ea5.firebasestorage.app",
+      messagingSenderId: "266526082951",
+      appId: "1:266526082951:web:dea4164197d3ff3f02f522"
+    };
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // UI hooks
+    const msBtn = document.getElementById('msLogin');
+    const anonBtn = document.getElementById('anonLogin');
+    const signOutBtn = document.getElementById('signOut');
+    const statusEl = document.getElementById('fbStatus');
+    const saveNowBtn = document.getElementById('saveNow');
+    const hintEl = document.getElementById('saveHint');
+    const nameInput = document.getElementById('studentName');
+    const classInput = document.getElementById('studentClass');
+
+    const dash = document.getElementById('teacher-dash');
+    const dashInfo = document.getElementById('dashInfo');
+    const dashRows = document.getElementById('dashRows');
+
+    // Auth
+    msBtn?.addEventListener('click', async () => {
+      try {
+        const provider = new OAuthProvider('microsoft.com');
+        // Optional: restrict to your tenant only (replace with your Azure AD tenant ID)
+        // provider.setCustomParameters({ tenant: 'TENANT_ID_HERE' });
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        console.error(e);
+        alert('Microsoft sign-in failed (check provider is enabled & redirect URIs).');
+      }
+    });
+    anonBtn?.addEventListener('click', () => signInAnonymously(auth).catch(()=>alert('Anon sign-in failed')));
+    signOutBtn?.addEventListener('click', () => signOut(auth));
+
+    // Collect from page
+    function collectWritingPanels() {
+      const out = {};
+      document.querySelectorAll('[data-writing-panel]').forEach((panel, i) => {
+        const key = panel.getAttribute('data-storage-key') || `panel_${i}`;
+        const text = panel.querySelector('[data-writing-input]')?.value?.trim() || '';
+        out[key] = text;
+      });
+      return out;
+    }
+    function getGameScoreObj() {
+      let score = null, total = null;
+      const sEl = document.getElementById('score');
+      if (sEl && sEl.textContent) {
+        const m = sEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+        if (m) { score = parseInt(m[1],10); total = parseInt(m[2],10); }
+      }
+      return { score, total };
+    }
+
+    // Save to Firestore
+    async function saveBundle() {
+      const user = auth.currentUser;
+      if (!user) { hintEl.textContent = 'Please sign in to save.'; return; }
+
+      const payload = {
+        uid: user.uid,
+        email: user.email || null,
+        name: nameInput.value.trim() || null,
+        class: classInput.value.trim() || null,
+        lesson: 'vibe-vs-text',
+        panels: collectWritingPanels(),
+        game: getGameScoreObj(),
+        updatedAt: serverTimestamp()
+      };
+      await setDoc(doc(db, 'responses', user.uid), payload, { merge: true });
+      hintEl.textContent = 'Saved just now.';
+      setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000);
+    }
+
+    // Debounced autosave
+    let t=null;
+    function scheduleSave(){ clearTimeout(t); t = setTimeout(saveBundle, 800); }
+
+    // Hook writing inputs & game button
+    document.querySelectorAll('[data-writing-input]').forEach(el => {
+      el.addEventListener('input', scheduleSave);
+      el.addEventListener('blur', saveBundle);
+    });
+    document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
+    saveNowBtn?.addEventListener('click', saveBundle);
+
+    // Auth state
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        statusEl.textContent = 'Not signed in';
+        dash.classList.add('hidden');
+        return;
+      }
+      statusEl.textContent = user.email ? `Signed in: ${user.email}` : 'Signed in';
+
+      // Prefill if we have an existing doc
+      try {
+        const snap = await getDoc(doc(db, 'responses', user.uid));
+        const data = snap.exists() ? snap.data() : null;
+        if (data) {
+          if (data.name && !nameInput.value) nameInput.value = data.name;
+          if (data.class && !classInput.value) classInput.value = data.class;
+        }
+      } catch {}
+
+      // Teacher dashboard (adjust the allowed emails/domains)
+      const email = user.email || '';
+      const isTeacher =
+        /@schools\.sa\.edu\.au$/i.test(email) || // your school domain
+        email === 'dmaher42@hotmail.com';        // you
+      if (isTeacher) {
+        dash.classList.remove('hidden');
+        dashInfo.textContent = 'Showing latest 50 responses';
+        dashRows.innerHTML = '';
+        const q = query(collection(db, 'responses'), orderBy('updatedAt', 'desc'), limit(50));
+        const qs = await getDocs(q);
+        qs.forEach(docSnap => {
+          const d = docSnap.data();
+          const when = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '—';
+          const score = (d.game?.score != null && d.game?.total != null) ? `${d.game.score}/${d.game.total}` : '—';
+          const name = d.name || '—';
+          const klass = d.class || '—';
+          const email = d.email || '—';
+          const link = `data:text/plain,` + encodeURIComponent(
+            `Name: ${name}\nClass: ${klass}\nEmail: ${email}\nUpdated: ${when}\nScore: ${score}\n\nPanels:\n` +
+            Object.entries(d.panels||{}).map(([k,v])=>`- ${k}:\n${(v||'').trim()}\n`).join('\n')
+          );
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="p-2 align-top">${name}</td>
+            <td class="p-2 align-top">${klass}</td>
+            <td class="p-2 align-top">${email}</td>
+            <td class="p-2 align-top">${when}</td>
+            <td class="p-2 align-top">${score}</td>
+            <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name||'student').replace(/\s+/g,'_')}_submission.txt">Download</a></td>
+          `;
+          dashRows.appendChild(tr);
+        });
+      } else {
+        dash.classList.add('hidden');
+      }
+
+      // Save immediately on sign-in
+      saveBundle();
+    });
   </script>
 </body>
 </html>
