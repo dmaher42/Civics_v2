@@ -683,17 +683,18 @@
     })();
   </script>
 
- <script type="module">
+<script type="module">
+  // Firebase CDN (modular SDK)
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import {
-    getAuth, onAuthStateChanged, signOut, signInWithPopup, OAuthProvider
+    getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import {
     getFirestore, doc, setDoc, getDoc, serverTimestamp,
     collection, query, orderBy, limit, getDocs
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-  // — Your existing config (safe to keep public) —
+  // === Your Firebase config (safe to be public) ===
   const firebaseConfig = {
     apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
     authDomain: "save-a9ea5.firebaseapp.com",
@@ -707,8 +708,15 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // UI elements
-  const msBtn = document.getElementById('msLogin');
+  // OPTIONAL: App Check (after you enable reCAPTCHA v3 in Firebase Console)
+  // import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
+  // initializeAppCheck(app, {
+  //   provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
+  //   isTokenAutoRefreshEnabled: true
+  // });
+
+  // UI hooks
+  const googleBtn = document.getElementById('googleLogin');
   const signOutBtn = document.getElementById('signOut');
   const statusEl = document.getElementById('fbStatus');
   const saveNowBtn = document.getElementById('saveNow');
@@ -719,31 +727,29 @@
   const dashInfo = document.getElementById('dashInfo');
   const dashRows = document.getElementById('dashRows');
 
-  // Hide/remove any "anonLogin" button in your HTML (not supported anymore)
-  const anonBtn = document.getElementById('anonLogin');
-  if (anonBtn) anonBtn.style.display = 'none';
+  // ===== Allowed teacher emails (edit this list) =====
+  const TEACHERS = [
+    'dmaher42@hotmail.com',
+    // 'your.name@mbhs.sa.edu.au',
+    // 'another.teacher@mbhs.sa.edu.au',
+  ];
 
-  // ====== Sign in with Microsoft (restricted) ======
-  msBtn?.addEventListener('click', async () => {
+  // ===== Sign in with Google (domain hint) =====
+  googleBtn?.addEventListener('click', async () => {
     try {
-      const provider = new OAuthProvider('microsoft.com');
-
-      // BEST: lock to your Azure AD tenant (replace with your GUID)
-      // provider.setCustomParameters({ tenant: 'YOUR_AAD_TENANT_ID' });
-
-      // Helpful: prefill the email domain on the login screen
-      provider.setCustomParameters({ login_hint: 'student@mbhs.sa.edu.au' });
-
+      const provider = new GoogleAuthProvider();
+      // 'hd' is a hint for Google Workspace; we still enforce on the client + in Firestore Rules.
+      provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
       await signInWithPopup(auth, provider);
     } catch (e) {
       console.error(e);
-      alert('Microsoft sign-in failed. Ask your teacher if this keeps happening.');
+      alert('Google sign-in failed. If this continues, contact your teacher.');
     }
   });
 
   signOutBtn?.addEventListener('click', () => signOut(auth));
 
-  // ====== Collectors ======
+  // ===== Collectors from your page =====
   function collectWritingPanels() {
     const out = {};
     document.querySelectorAll('[data-writing-panel]').forEach((panel, i) => {
@@ -763,9 +769,11 @@
     return { score, total };
   }
 
+  // ===== Save to Firestore =====
   async function saveBundle() {
     const user = auth.currentUser;
     if (!user) { hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au'; return; }
+
     const payload = {
       uid: user.uid,
       email: user.email || null,
@@ -780,6 +788,7 @@
     hintEl.textContent = 'Saved just now.'; setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000);
   }
 
+  // Debounced autosave
   let t=null; function scheduleSave(){ clearTimeout(t); t=setTimeout(saveBundle, 1000); }
   document.querySelectorAll('[data-writing-input]').forEach(el => {
     el.addEventListener('input', scheduleSave);
@@ -788,14 +797,7 @@
   document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
   saveNowBtn?.addEventListener('click', saveBundle);
 
-  // ====== Auth guard: allow only @mbhs.sa.edu.au students (and your teacher accounts) ======
-  function isTeacherEmail(email='') {
-    return (
-      /@schools\.sa\.edu\.au$/i.test(email) ||    // teacher domain(s) — adjust if needed
-      email.toLowerCase() === 'dmaher42@hotmail.com' // you
-    );
-  }
-
+  // ===== Auth guard: only @mbhs.sa.edu.au students; only teacher emails see dashboard =====
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       statusEl.textContent = 'Not signed in';
@@ -804,19 +806,19 @@
     }
 
     const email = (user.email || '').toLowerCase();
-    const isMbhsStudent = /@mbhs\.sa\.edu\.au$/i.test(email);
-    const teacher = isTeacherEmail(email);
+    const domainOK = email.endsWith('@mbhs.sa.edu.au');
+    const isTeacher = TEACHERS.map(e=>e.toLowerCase()).includes(email);
 
-    // Hard block anyone not in MBHS (unless teacher)
-    if (!isMbhsStudent && !teacher) {
-      alert('Please sign in with your school email (@mbhs.sa.edu.au).');
+    // Block non-MBHS users (unless in TEACHERS)
+    if (!domainOK && !isTeacher) {
+      alert('Please sign in with your @mbhs.sa.edu.au account.');
       await signOut(auth);
       return;
     }
 
     statusEl.textContent = `Signed in: ${email || 'account'}`;
 
-    // Prefill name/class if stored
+    // Prefill from existing doc
     try {
       const snap = await getDoc(doc(db, 'responses', user.uid));
       const data = snap.exists()? snap.data() : null;
@@ -827,7 +829,7 @@
     } catch {}
 
     // Teacher dashboard
-    if (teacher) {
+    if (isTeacher) {
       dash.classList.remove('hidden');
       dashInfo.textContent = 'Showing latest 50 responses';
       dashRows.innerHTML = '';
@@ -861,6 +863,7 @@
     saveBundle();
   });
 </script>
+
 
 </body>
 </html>
