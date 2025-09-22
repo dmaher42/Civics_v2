@@ -84,7 +84,18 @@
         <a href="#activity-4" class="hover:text-brand-600">Game</a>
         <a href="#resources" class="hover:text-brand-600">Resources</a>
       </nav>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
+        <!-- AUTH MOUNT -->
+        <div id="authArea" class="flex items-center gap-2">
+          <button id="googleLoginTop"
+                  class="px-3 py-2 rounded-lg bg-brand-600 text-white font-semibold hover:opacity-90">
+            Sign in with Google
+          </button>
+          <button id="signOutTop"
+                  class="hidden px-3 py-2 rounded-lg border border-slate-300 text-sm hover:bg-slate-50">
+            Sign out
+          </button>
+        </div>
         <button id="themeToggle" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle dark mode">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M21.75 15.002A9.72 9.72 0 0 1 12.004 22C6.487 22 2 17.513 2 11.996 2 7.45 4.94 3.61 9.06 2.248a.75.75 0 0 1 .935.966 8.25 8.25 0 0 0 10.73 10.73.75.75 0 0 1 1.027.958Z"/></svg>
         </button>
@@ -394,8 +405,7 @@
 
           <div class="flex flex-wrap items-center gap-2 mb-3">
             <button id="googleLogin" class="px-3 py-2 rounded-xl bg-brand-600 text-white">Sign in with Google</button>
-            <button id="anonLogin" class="px-3 py-2 rounded-xl border border-slate-300">Use quick sign-in</button>
-            <button id="signOut" class="px-3 py-2 rounded-xl border border-slate-300">Sign out</button>
+            <button id="signOut" class="hidden px-3 py-2 rounded-xl border border-slate-300">Sign out</button>
             <span id="fbStatus" class="ml-auto text-sm text-slate-600">Not signed in</span>
           </div>
 
@@ -687,11 +697,25 @@
 // ========== Firebase (modular SDK via CDN) ==========
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
-  getAuth, onAuthStateChanged, signOut, signInWithPopup, signInWithRedirect, GoogleAuthProvider
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
-  getFirestore, doc, setDoc, getDoc, serverTimestamp,
-  collection, query, orderBy, limit, getDocs
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 // ---- Config (public; do not hide) ----
@@ -709,13 +733,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ---- Teacher allowlist (edit as needed) ----
+// ---- Teacher allowlist ----
 const TEACHERS = [
+  'dmaher42@hotmail.com',
   'dmaher@mbhs.sa.edu.au',
-  // 'dmaher@mbhs.sa.edu.au',
+  // 'your.name@mbhs.sa.edu.au',
 ];
 
 // ---- UI refs ----
+const loginBtnTop = document.getElementById('googleLoginTop');
+const signOutTop = document.getElementById('signOutTop');
 const googleBtn = document.getElementById('googleLogin');
 const signOutBtn = document.getElementById('signOut');
 const statusEl = document.getElementById('fbStatus');
@@ -723,6 +750,210 @@ const saveNowBtn = document.getElementById('saveNow');
 const hintEl = document.getElementById('saveHint');
 const nameInput = document.getElementById('studentName');
 const classInput = document.getElementById('studentClass');
+
+// ---- Helpers ----
+const teacherSet = new Set(TEACHERS.map((e) => e.toLowerCase()));
+const sessionStore = (() => {
+  try {
+    return window.sessionStorage;
+  } catch (err) {
+    console.warn('[auth] sessionStorage unavailable', err);
+    return null;
+  }
+})();
+
+const POPUP_FALLBACK_CODES = new Set([
+  'auth/operation-not-supported-in-this-environment',
+  'auth/popup-blocked',
+  'auth/popup-closed-by-user',
+  'auth/auth-domain-config-required'
+]);
+const AUTO_REDIRECT_KEY = 'mbhs_auto_redirect_tried';
+const LOGIN_REDIRECTING_KEY = 'mbhs_login_redirecting';
+
+function isTeacherEmail(email) {
+  return teacherSet.has((email || '').toLowerCase());
+}
+function domainOK(email) {
+  return (email || '').toLowerCase().endsWith('@mbhs.sa.edu.au');
+}
+
+function morphToSignedIn(email) {
+  if (loginBtnTop) {
+    loginBtnTop.dataset.state = 'signed-in';
+    loginBtnTop.className = 'inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white font-semibold cursor-default';
+    loginBtnTop.innerHTML = '✓ Signed in';
+    loginBtnTop.title = email || 'Signed in';
+    loginBtnTop.setAttribute('disabled', 'true');
+  }
+  if (googleBtn) {
+    googleBtn.textContent = 'Signed in';
+    googleBtn.setAttribute('disabled', 'true');
+  }
+}
+function morphToSignIn() {
+  if (loginBtnTop) {
+    delete loginBtnTop.dataset.state;
+    loginBtnTop.className = 'px-3 py-2 rounded-lg bg-brand-600 text-white font-semibold hover:opacity-90';
+    loginBtnTop.textContent = 'Sign in with Google';
+    loginBtnTop.removeAttribute('disabled');
+    loginBtnTop.removeAttribute('title');
+  }
+  if (googleBtn) {
+    googleBtn.textContent = 'Sign in with Google';
+    googleBtn.removeAttribute('disabled');
+  }
+}
+
+function setLoginButtonsLoading(loading) {
+  const buttons = [loginBtnTop, googleBtn];
+  buttons.forEach((btn) => {
+    if (!btn) return;
+    if (loading) {
+      btn.dataset.loading = '1';
+      btn.classList.add('opacity-80', 'cursor-wait');
+      btn.setAttribute('disabled', 'true');
+    } else {
+      btn.classList.remove('opacity-80', 'cursor-wait');
+      delete btn.dataset.loading;
+      if (btn === loginBtnTop) {
+        if (loginBtnTop?.dataset.state !== 'signed-in') {
+          loginBtnTop.removeAttribute('disabled');
+        }
+      } else if (!auth.currentUser) {
+        btn.removeAttribute('disabled');
+      }
+    }
+  });
+}
+
+function setFlag(key, value) {
+  if (!sessionStore) return;
+  try {
+    if (value) {
+      sessionStore.setItem(key, '1');
+    } else {
+      sessionStore.removeItem(key);
+    }
+  } catch (err) {
+    console.warn('[auth] sessionStorage write failed', err);
+  }
+}
+function getFlag(key) {
+  if (!sessionStore) return false;
+  try {
+    return sessionStore.getItem(key) === '1';
+  } catch (err) {
+    console.warn('[auth] sessionStorage read failed', err);
+    return false;
+  }
+}
+function createProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
+  return provider;
+}
+function isRedirecting() {
+  return getFlag(LOGIN_REDIRECTING_KEY);
+}
+function markRedirecting(flag) {
+  setFlag(LOGIN_REDIRECTING_KEY, flag);
+}
+function hasAutoRedirected() {
+  return getFlag(AUTO_REDIRECT_KEY);
+}
+function markAutoRedirected() {
+  setFlag(AUTO_REDIRECT_KEY, true);
+}
+
+function maybeAutoLogin() {
+  if (auth.currentUser) return;
+  if (!sessionStore) {
+    console.log('[auth] sessionStorage unavailable; skipping auto sign-in redirect');
+    return;
+  }
+  if (hasAutoRedirected()) {
+    console.log('[auth] auto sign-in redirect already attempted this session');
+    return;
+  }
+  console.log('[auth] auto redirect sign-in triggered');
+  markAutoRedirected();
+  markRedirecting(true);
+  const provider = createProvider();
+  signInWithRedirect(auth, provider).catch((err) => {
+    console.warn('[auth] auto redirect failed', err?.code, err?.message);
+    markRedirecting(false);
+  });
+}
+
+async function startLoginFlow() {
+  if (auth.currentUser) {
+    console.log('[auth] startLoginFlow skipped — already signed in');
+    return;
+  }
+  if (loginBtnTop?.dataset.loading === '1' || googleBtn?.dataset.loading === '1') {
+    return;
+  }
+  console.log('[auth] start login (popup first)');
+  setLoginButtonsLoading(true);
+  const provider = createProvider();
+  let triggeredRedirect = false;
+  try {
+    await signInWithPopup(auth, provider);
+    console.log('[auth] popup sign-in success');
+  } catch (error) {
+    console.warn('[auth] popup sign-in failed', error?.code, error?.message);
+    if (POPUP_FALLBACK_CODES.has(error?.code)) {
+      console.log('[auth] falling back to redirect sign-in');
+      triggeredRedirect = true;
+      markRedirecting(true);
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (redirectErr) {
+        triggeredRedirect = false;
+        markRedirecting(false);
+        console.error('[auth] redirect sign-in failed', redirectErr?.code, redirectErr?.message);
+        alert('Sign-in failed. Please try again or contact your teacher.');
+      }
+      return;
+    }
+    alert('Sign-in failed. Please try again or contact your teacher.');
+  } finally {
+    if (!triggeredRedirect) {
+      setLoginButtonsLoading(false);
+    }
+  }
+}
+
+function handleSignOut() {
+  console.log('[auth] sign-out requested');
+  signOut(auth).catch((err) => console.error('[auth] sign-out error', err));
+}
+
+loginBtnTop?.addEventListener('click', startLoginFlow);
+googleBtn?.addEventListener('click', startLoginFlow);
+signOutTop?.addEventListener('click', handleSignOut);
+signOutBtn?.addEventListener('click', handleSignOut);
+window.startGoogleSignIn = startLoginFlow;
+
+getRedirectResult(auth)
+  .then((result) => {
+    if (result?.user) {
+      console.log('[auth] redirect result received', result.user.email);
+    } else {
+      console.log('[auth] no redirect user result');
+    }
+  })
+  .catch((err) => {
+    if (err?.code === 'auth/no-auth-event') {
+      console.log('[auth] no auth event on redirect result');
+    } else {
+      console.error('[auth] redirect result error', err);
+    }
+  })
+  .finally(() => {
+    markRedirecting(false);
+  });
 
 // ---- Collectors from page (keep selectors as in your page) ----
 function collectWritingPanels() {
@@ -735,11 +966,15 @@ function collectWritingPanels() {
   return out;
 }
 function getGameScoreObj() {
-  let score = null, total = null;
+  let score = null;
+  let total = null;
   const sEl = document.getElementById('score');
   if (sEl?.textContent) {
     const m = sEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
-    if (m) { score = +m[1]; total = +m[2]; }
+    if (m) {
+      score = +m[1];
+      total = +m[2];
+    }
   }
   return { score, total };
 }
@@ -747,7 +982,10 @@ function getGameScoreObj() {
 // ---- Save bundle to Firestore ----
 async function saveBundle() {
   const user = auth.currentUser;
-  if (!user) { if (hintEl) hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au'; return; }
+  if (!user) {
+    if (hintEl) hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au';
+    return;
+  }
   const payload = {
     uid: user.uid,
     email: user.email || null,
@@ -759,97 +997,100 @@ async function saveBundle() {
     updatedAt: serverTimestamp()
   };
   await setDoc(doc(db, 'responses', user.uid), payload, { merge: true });
-  if (hintEl) { hintEl.textContent = 'Saved just now.'; setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000); }
+  if (hintEl) {
+    hintEl.textContent = 'Saved just now.';
+    setTimeout(() => {
+      if (hintEl.textContent === 'Saved just now.') {
+        hintEl.textContent = 'Autosaves while you type.';
+      }
+    }, 2000);
+  }
 }
 
 // ---- Debounced autosave ----
-let t=null; function scheduleSave(){ clearTimeout(t); t=setTimeout(saveBundle, 1000); }
-document.querySelectorAll('[data-writing-input]').forEach(el => {
+let t = null;
+function scheduleSave() {
+  clearTimeout(t);
+  t = setTimeout(saveBundle, 1000);
+}
+document.querySelectorAll('[data-writing-input]').forEach((el) => {
   el.addEventListener('input', scheduleSave);
   el.addEventListener('blur', saveBundle);
 });
 document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
 saveNowBtn?.addEventListener('click', saveBundle);
 
-// ---- Google Sign-In with popup→redirect fallback ----
-function startLogin() {
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
-  googleBtn?.setAttribute('disabled','true');
-
-  signInWithPopup(auth, provider)
-    .then(()=> console.debug('[auth] popup success'))
-    .catch(async (e) => {
-      console.warn('[auth] popup failed; trying redirect', e.code, e.message);
-      // fallback for popup blockers or domain config
-      if (
-        e.code === 'auth/operation-not-supported-in-this-environment' ||
-        e.code === 'auth/popup-blocked' ||
-        e.code === 'auth/popup-closed-by-user' ||
-        e.code === 'auth/auth-domain-config-required'
-      ) {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-      alert('Sign-in failed. Check Authorized domains in Firebase and try again.');
-    })
-    .finally(()=> googleBtn?.removeAttribute('disabled'));
-}
-
-googleBtn?.addEventListener('click', startLogin);
-signOutBtn?.addEventListener('click', () => signOut(auth));
-window.startGoogleSignIn = () => startLogin(); // for manual testing in console
-
-// ---- Auth guard: only @mbhs.sa.edu.au students; teacher allowlist see dashboard ----
+// ---- Auth guard + dashboard wiring ----
 onAuthStateChanged(auth, async (user) => {
+  console.log('[auth] state changed', user?.email || 'none');
+  setLoginButtonsLoading(false);
+
   if (!user) {
+    morphToSignIn();
+    signOutTop?.classList.add('hidden');
+    signOutBtn?.classList.add('hidden');
     if (statusEl) statusEl.textContent = 'Not signed in';
-    // Hide teacher dashboard if present
-    document.getElementById('teacher-dash')?.classList.add('hidden');
+    if (hintEl) hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au';
+    if (!isRedirecting()) {
+      maybeAutoLogin();
+    } else {
+      console.log('[auth] redirect in progress — skipping auto sign-in');
+    }
+    window.dispatchEvent(new CustomEvent('auth-ready', { detail: { user: null } }));
     return;
   }
 
-  const email = (user.email || '').toLowerCase();
-  const domainOK = email.endsWith('@mbhs.sa.edu.au');
-  const isTeacher = TEACHERS.map(e=>e.toLowerCase()).includes(email);
-
-  if (!domainOK && !isTeacher) {
+  const rawEmail = user.email || '';
+  const email = rawEmail.toLowerCase();
+  const teacher = isTeacherEmail(email);
+  if (!domainOK(email) && !teacher) {
+    console.warn('[auth] rejecting non-MBHS account', email);
     alert('Please sign in with your @mbhs.sa.edu.au account.');
     await signOut(auth);
     return;
   }
-  if (statusEl) statusEl.textContent = `Signed in: ${email || 'account'}`;
+
+  console.log('[auth] signed in', rawEmail, teacher ? '(teacher)' : '');
+  morphToSignedIn(rawEmail);
+  signOutTop?.classList.remove('hidden');
+  signOutBtn?.classList.remove('hidden');
+  if (statusEl) statusEl.textContent = `Signed in: ${rawEmail || 'account'}`;
+  if (hintEl) hintEl.textContent = 'Autosaves while you type.';
 
   // Prefill fields if prior data exists
   try {
     const snap = await getDoc(doc(db, 'responses', user.uid));
-    const data = snap.exists()? snap.data() : null;
+    const data = snap.exists() ? snap.data() : null;
     if (data) {
       if (data.name && !nameInput?.value) nameInput.value = data.name;
       if (data.class && !classInput?.value) classInput.value = data.class;
     }
-  } catch(e){ console.debug('prefill skipped', e); }
+  } catch (e) {
+    console.debug('[auth] prefill skipped', e);
+  }
 
   // Teacher dashboard (optional)
   const dash = document.getElementById('teacher-dash');
   if (dash) {
-    if (isTeacher) {
+    if (teacher) {
       dash.classList.remove('hidden');
       const dashInfo = document.getElementById('dashInfo');
       const dashRows = document.getElementById('dashRows');
       if (dashInfo) dashInfo.textContent = 'Showing latest 50 responses';
       if (dashRows) {
         dashRows.innerHTML = '';
-        const q = query(collection(db, 'responses'), orderBy('updatedAt','desc'), limit(50));
+        const q = query(collection(db, 'responses'), orderBy('updatedAt', 'desc'), limit(50));
         const qs = await getDocs(q);
-        qs.forEach(docSnap => {
+        qs.forEach((docSnap) => {
           const d = docSnap.data();
           const when = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '—';
-          const score = (d.game?.score!=null && d.game?.total!=null) ? `${d.game.score}/${d.game.total}` : '—';
-          const name = d.name || '—', klass = d.class || '—', mail = d.email || '—';
+          const score = d.game?.score != null && d.game?.total != null ? `${d.game.score}/${d.game.total}` : '—';
+          const name = d.name || '—';
+          const klass = d.class || '—';
+          const mail = d.email || '—';
           const link = `data:text/plain,` + encodeURIComponent(
             `Name: ${name}\nClass: ${klass}\nEmail: ${mail}\nUpdated: ${when}\nScore: ${score}\n\nPanels:\n` +
-            Object.entries(d.panels||{}).map(([k,v])=>`- ${k}:\n${(v||'').trim()}\n`).join('\n')
+            Object.entries(d.panels || {}).map(([k, v]) => `- ${k}:\n${(v || '').trim()}\n`).join('\n')
           );
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -858,7 +1099,7 @@ onAuthStateChanged(auth, async (user) => {
             <td class="p-2 align-top">${mail}</td>
             <td class="p-2 align-top">${when}</td>
             <td class="p-2 align-top">${score}</td>
-            <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name||'student').replace(/\s+/g,'_')}_submission.txt">Download</a></td>
+            <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name || 'student').replace(/\s+/g, '_')}_submission.txt">Download</a></td>
           `;
           dashRows?.appendChild(tr);
         });
@@ -870,6 +1111,8 @@ onAuthStateChanged(auth, async (user) => {
 
   // Save once on sign-in to create/update doc
   saveBundle();
+
+  window.dispatchEvent(new CustomEvent('auth-ready', { detail: { user } }));
 });
 </script>
 
