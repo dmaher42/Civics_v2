@@ -683,173 +683,184 @@
     })();
   </script>
 
-  <script type="module">
-    // --- Firebase (modular SDK via CDN) ---
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import {
-      getAuth, onAuthStateChanged, signInAnonymously, signOut,
-      signInWithPopup, OAuthProvider
-    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import {
-      getFirestore, doc, setDoc, getDoc, serverTimestamp,
-      collection, query, orderBy, limit, getDocs
-    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+ <script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import {
+    getAuth, onAuthStateChanged, signOut, signInWithPopup, OAuthProvider
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import {
+    getFirestore, doc, setDoc, getDoc, serverTimestamp,
+    collection, query, orderBy, limit, getDocs
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // === Your Firebase config ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
-      authDomain: "save-a9ea5.firebaseapp.com",
-      projectId: "save-a9ea5",
-      storageBucket: "save-a9ea5.firebasestorage.app",
-      messagingSenderId: "266526082951",
-      appId: "1:266526082951:web:dea4164197d3ff3f02f522"
+  // — Your existing config (safe to keep public) —
+  const firebaseConfig = {
+    apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
+    authDomain: "save-a9ea5.firebaseapp.com",
+    projectId: "save-a9ea5",
+    storageBucket: "save-a9ea5.firebasestorage.app",
+    messagingSenderId: "266526082951",
+    appId: "1:266526082951:web:dea4164197d3ff3f02f522"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // UI elements
+  const msBtn = document.getElementById('msLogin');
+  const signOutBtn = document.getElementById('signOut');
+  const statusEl = document.getElementById('fbStatus');
+  const saveNowBtn = document.getElementById('saveNow');
+  const hintEl = document.getElementById('saveHint');
+  const nameInput = document.getElementById('studentName');
+  const classInput = document.getElementById('studentClass');
+  const dash = document.getElementById('teacher-dash');
+  const dashInfo = document.getElementById('dashInfo');
+  const dashRows = document.getElementById('dashRows');
+
+  // Hide/remove any "anonLogin" button in your HTML (not supported anymore)
+  const anonBtn = document.getElementById('anonLogin');
+  if (anonBtn) anonBtn.style.display = 'none';
+
+  // ====== Sign in with Microsoft (restricted) ======
+  msBtn?.addEventListener('click', async () => {
+    try {
+      const provider = new OAuthProvider('microsoft.com');
+
+      // BEST: lock to your Azure AD tenant (replace with your GUID)
+      // provider.setCustomParameters({ tenant: 'YOUR_AAD_TENANT_ID' });
+
+      // Helpful: prefill the email domain on the login screen
+      provider.setCustomParameters({ login_hint: 'student@mbhs.sa.edu.au' });
+
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      console.error(e);
+      alert('Microsoft sign-in failed. Ask your teacher if this keeps happening.');
+    }
+  });
+
+  signOutBtn?.addEventListener('click', () => signOut(auth));
+
+  // ====== Collectors ======
+  function collectWritingPanels() {
+    const out = {};
+    document.querySelectorAll('[data-writing-panel]').forEach((panel, i) => {
+      const key = panel.getAttribute('data-storage-key') || `panel_${i}`;
+      const text = panel.querySelector('[data-writing-input]')?.value?.trim() || '';
+      out[key] = text;
+    });
+    return out;
+  }
+  function getGameScoreObj() {
+    let score = null, total = null;
+    const sEl = document.getElementById('score');
+    if (sEl?.textContent) {
+      const m = sEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+      if (m) { score = +m[1]; total = +m[2]; }
+    }
+    return { score, total };
+  }
+
+  async function saveBundle() {
+    const user = auth.currentUser;
+    if (!user) { hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au'; return; }
+    const payload = {
+      uid: user.uid,
+      email: user.email || null,
+      name: nameInput.value.trim() || null,
+      class: classInput.value.trim() || null,
+      lesson: 'vibe-vs-text',
+      panels: collectWritingPanels(),
+      game: getGameScoreObj(),
+      updatedAt: serverTimestamp()
     };
+    await setDoc(doc(db, 'responses', user.uid), payload, { merge: true });
+    hintEl.textContent = 'Saved just now.'; setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000);
+  }
 
-    // Init
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  let t=null; function scheduleSave(){ clearTimeout(t); t=setTimeout(saveBundle, 1000); }
+  document.querySelectorAll('[data-writing-input]').forEach(el => {
+    el.addEventListener('input', scheduleSave);
+    el.addEventListener('blur', saveBundle);
+  });
+  document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
+  saveNowBtn?.addEventListener('click', saveBundle);
 
-    // UI hooks
-    const msBtn = document.getElementById('msLogin');
-    const anonBtn = document.getElementById('anonLogin');
-    const signOutBtn = document.getElementById('signOut');
-    const statusEl = document.getElementById('fbStatus');
-    const saveNowBtn = document.getElementById('saveNow');
-    const hintEl = document.getElementById('saveHint');
-    const nameInput = document.getElementById('studentName');
-    const classInput = document.getElementById('studentClass');
+  // ====== Auth guard: allow only @mbhs.sa.edu.au students (and your teacher accounts) ======
+  function isTeacherEmail(email='') {
+    return (
+      /@schools\.sa\.edu\.au$/i.test(email) ||    // teacher domain(s) — adjust if needed
+      email.toLowerCase() === 'dmaher42@hotmail.com' // you
+    );
+  }
 
-    const dash = document.getElementById('teacher-dash');
-    const dashInfo = document.getElementById('dashInfo');
-    const dashRows = document.getElementById('dashRows');
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      statusEl.textContent = 'Not signed in';
+      dash.classList.add('hidden');
+      return;
+    }
 
-    // Auth
-    msBtn?.addEventListener('click', async () => {
-      try {
-        const provider = new OAuthProvider('google.com');
-        // Optional: restrict to your tenant only (replace with your Azure AD tenant ID)
-        // provider.setCustomParameters({ tenant: 'TENANT_ID_HERE' });
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        console.error(e);
-        alert('Microsoft sign-in failed (check provider is enabled & redirect URIs).');
+    const email = (user.email || '').toLowerCase();
+    const isMbhsStudent = /@mbhs\.sa\.edu\.au$/i.test(email);
+    const teacher = isTeacherEmail(email);
+
+    // Hard block anyone not in MBHS (unless teacher)
+    if (!isMbhsStudent && !teacher) {
+      alert('Please sign in with your school email (@mbhs.sa.edu.au).');
+      await signOut(auth);
+      return;
+    }
+
+    statusEl.textContent = `Signed in: ${email || 'account'}`;
+
+    // Prefill name/class if stored
+    try {
+      const snap = await getDoc(doc(db, 'responses', user.uid));
+      const data = snap.exists()? snap.data() : null;
+      if (data) {
+        if (data.name && !nameInput.value) nameInput.value = data.name;
+        if (data.class && !classInput.value) classInput.value = data.class;
       }
-    });
-    anonBtn?.addEventListener('click', () => signInAnonymously(auth).catch(()=>alert('Anon sign-in failed')));
-    signOutBtn?.addEventListener('click', () => signOut(auth));
+    } catch {}
 
-    // Collect from page
-    function collectWritingPanels() {
-      const out = {};
-      document.querySelectorAll('[data-writing-panel]').forEach((panel, i) => {
-        const key = panel.getAttribute('data-storage-key') || `panel_${i}`;
-        const text = panel.querySelector('[data-writing-input]')?.value?.trim() || '';
-        out[key] = text;
+    // Teacher dashboard
+    if (teacher) {
+      dash.classList.remove('hidden');
+      dashInfo.textContent = 'Showing latest 50 responses';
+      dashRows.innerHTML = '';
+      const q = query(collection(db, 'responses'), orderBy('updatedAt','desc'), limit(50));
+      const qs = await getDocs(q);
+      qs.forEach(docSnap => {
+        const d = docSnap.data();
+        const when = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '—';
+        const score = (d.game?.score!=null && d.game?.total!=null) ? `${d.game.score}/${d.game.total}` : '—';
+        const name = d.name || '—', klass = d.class || '—', mail = d.email || '—';
+        const link = `data:text/plain,` + encodeURIComponent(
+          `Name: ${name}\nClass: ${klass}\nEmail: ${mail}\nUpdated: ${when}\nScore: ${score}\n\nPanels:\n` +
+          Object.entries(d.panels||{}).map(([k,v])=>`- ${k}:\n${(v||'').trim()}\n`).join('\n')
+        );
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="p-2 align-top">${name}</td>
+          <td class="p-2 align-top">${klass}</td>
+          <td class="p-2 align-top">${mail}</td>
+          <td class="p-2 align-top">${when}</td>
+          <td class="p-2 align-top">${score}</td>
+          <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name||'student').replace(/\s+/g,'_')}_submission.txt">Download</a></td>
+        `;
+        dashRows.appendChild(tr);
       });
-      return out;
-    }
-    function getGameScoreObj() {
-      let score = null, total = null;
-      const sEl = document.getElementById('score');
-      if (sEl && sEl.textContent) {
-        const m = sEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
-        if (m) { score = parseInt(m[1],10); total = parseInt(m[2],10); }
-      }
-      return { score, total };
+    } else {
+      dash.classList.add('hidden');
     }
 
-    // Save to Firestore
-    async function saveBundle() {
-      const user = auth.currentUser;
-      if (!user) { hintEl.textContent = 'Please sign in to save.'; return; }
+    // Save once on sign-in
+    saveBundle();
+  });
+</script>
 
-      const payload = {
-        uid: user.uid,
-        email: user.email || null,
-        name: nameInput.value.trim() || null,
-        class: classInput.value.trim() || null,
-        lesson: 'vibe-vs-text',
-        panels: collectWritingPanels(),
-        game: getGameScoreObj(),
-        updatedAt: serverTimestamp()
-      };
-      await setDoc(doc(db, 'responses', user.uid), payload, { merge: true });
-      hintEl.textContent = 'Saved just now.';
-      setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000);
-    }
-
-    // Debounced autosave
-    let t=null;
-    function scheduleSave(){ clearTimeout(t); t = setTimeout(saveBundle, 800); }
-
-    // Hook writing inputs & game button
-    document.querySelectorAll('[data-writing-input]').forEach(el => {
-      el.addEventListener('input', scheduleSave);
-      el.addEventListener('blur', saveBundle);
-    });
-    document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
-    saveNowBtn?.addEventListener('click', saveBundle);
-
-    // Auth state
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        statusEl.textContent = 'Not signed in';
-        dash.classList.add('hidden');
-        return;
-      }
-      statusEl.textContent = user.email ? `Signed in: ${user.email}` : 'Signed in';
-
-      // Prefill if we have an existing doc
-      try {
-        const snap = await getDoc(doc(db, 'responses', user.uid));
-        const data = snap.exists() ? snap.data() : null;
-        if (data) {
-          if (data.name && !nameInput.value) nameInput.value = data.name;
-          if (data.class && !classInput.value) classInput.value = data.class;
-        }
-      } catch {}
-
-      // Teacher dashboard (adjust the allowed emails/domains)
-      const email = user.email || '';
-      const isTeacher =
-        /@schools\.sa\.edu\.au$/i.test(email) || // your school domain
-        email === 'dmaher42@hotmail.com';        // you
-      if (isTeacher) {
-        dash.classList.remove('hidden');
-        dashInfo.textContent = 'Showing latest 50 responses';
-        dashRows.innerHTML = '';
-        const q = query(collection(db, 'responses'), orderBy('updatedAt', 'desc'), limit(50));
-        const qs = await getDocs(q);
-        qs.forEach(docSnap => {
-          const d = docSnap.data();
-          const when = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '—';
-          const score = (d.game?.score != null && d.game?.total != null) ? `${d.game.score}/${d.game.total}` : '—';
-          const name = d.name || '—';
-          const klass = d.class || '—';
-          const email = d.email || '—';
-          const link = `data:text/plain,` + encodeURIComponent(
-            `Name: ${name}\nClass: ${klass}\nEmail: ${email}\nUpdated: ${when}\nScore: ${score}\n\nPanels:\n` +
-            Object.entries(d.panels||{}).map(([k,v])=>`- ${k}:\n${(v||'').trim()}\n`).join('\n')
-          );
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="p-2 align-top">${name}</td>
-            <td class="p-2 align-top">${klass}</td>
-            <td class="p-2 align-top">${email}</td>
-            <td class="p-2 align-top">${when}</td>
-            <td class="p-2 align-top">${score}</td>
-            <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name||'student').replace(/\s+/g,'_')}_submission.txt">Download</a></td>
-          `;
-          dashRows.appendChild(tr);
-        });
-      } else {
-        dash.classList.add('hidden');
-      }
-
-      // Save immediately on sign-in
-      saveBundle();
-    });
-  </script>
 </body>
 </html>
