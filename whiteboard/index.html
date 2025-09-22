@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Whiteboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family/Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: none; /* Prevents scrolling on touch devices when drawing */
+        }
+        canvas {
+            display: block;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .tool-btn.active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+        .color-option.selected {
+            outline: 3px solid #3b82f6; /* blue-500 */
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="overflow-hidden bg-slate-100">
+
+    <canvas id="whiteboard"></canvas>
+
+    <!-- Toolbar -->
+    <div id="toolbar" class="fixed top-4 left-1/2 -translate-x-1/2 bg-white shadow-lg rounded-lg p-2 flex items-center space-x-2 z-10">
+        <!-- Tools -->
+        <div class="flex items-center space-x-1 border-r pr-2">
+            <button id="pen-tool" class="tool-btn active p-2 rounded-md hover:bg-slate-200" title="Pen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            </button>
+            <button id="eraser-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Eraser">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21H7Z"/><path d="M22 21H7"/><path d="m5 12 5 5"/></svg>
+            </button>
+             <button id="text-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.1H3"/><path d="M21 12.1H3"/><path d="M15.1 18.1H3"/><path d="M7 4.1v16"/></svg>
+            </button>
+            <button id="sticky-note-tool" class="tool-btn p-2 rounded-md hover:bg-slate-200" title="Sticky Note">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></svg>
+            </button>
+        </div>
+        
+        <!-- Colors -->
+        <div id="color-palette" class="flex items-center space-x-2 border-r pr-2">
+            <div class="color-option selected w-6 h-6 rounded-full cursor-pointer bg-black" data-color="black"></div>
+            <div class="color-option w-6 h-6 rounded-full cursor-pointer bg-red-500" data-color="#ef4444"></div>
+            <div class="color-option w-6 h-6 rounded-full cursor-pointer bg-blue-500" data-color="#3b82f6"></div>
+            <div class="color-option w-6 h-6 rounded-full cursor-pointer bg-green-500" data-color="#22c55e"></div>
+            <div class="color-option w-6 h-6 rounded-full cursor-pointer bg-yellow-400" data-color="#facc15"></div>
+        </div>
+
+        <!-- Line Width -->
+        <div class="flex items-center space-x-2">
+             <label for="line-width" class="text-sm text-slate-600">Size</label>
+             <input type="range" id="line-width" min="1" max="20" value="5" class="w-24 cursor-pointer">
+        </div>
+        
+        <!-- Clear Canvas -->
+        <div class="border-l pl-2">
+            <button id="clear-canvas" class="p-2 rounded-md hover:bg-red-500 hover:text-white" title="Clear Canvas">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- User ID Display -->
+    <div id="user-info" class="fixed bottom-4 left-4 bg-white shadow-lg rounded-lg p-2 px-4 z-10 text-sm text-slate-700">
+        Loading...
+    </div>
+
+    <!-- Text Input Modal -->
+    <div id="text-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+        <div class="bg-white p-6 rounded-lg shadow-xl">
+            <h3 class="text-lg font-medium mb-4">Enter Text</h3>
+            <input type="text" id="text-input" class="w-full border border-slate-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="cancel-text" class="px-4 py-2 rounded-md bg-slate-200 hover:bg-slate-300">Cancel</button>
+                <button id="submit-text" class="px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600">Add Text</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Initialization ---
+
+        // =================================================================================
+        // 1. If running in a special environment, the config is provided automatically.
+        // 2. If running this file locally, paste your Firebase config object here.
+        // =================================================================================
+        const userProvidedConfig = {
+          apiKey: "AIzaSyCureZTEOUOdwc6ZVv0oO0BRovLBFlHmmA",
+          authDomain: "whiteboard-cf44a.firebaseapp.com",
+          projectId: "whiteboard-cf44a",
+          storageBucket: "whiteboard-cf44a.appspot.com",
+          messagingSenderId: "107168944170",
+          appId: "1:107168944170:web:607e9d1ec7ee70bf3b3353",
+          measurementId: "G-3NRK8DREK4"
+        };
+        
+        // Use the environment-provided config if available, otherwise fall back to the user's.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : userProvidedConfig;
+
+        // These variables are for specific environments.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-local-whiteboard';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userId;
+        const boardCollectionPath = `/artifacts/${appId}/public/data/board`;
+        const boardCollection = collection(db, boardCollectionPath);
+
+        // --- Canvas Setup ---
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentTool = 'pen';
+        let currentColor = 'black';
+        let currentWidth = 5;
+        let currentPath = [];
+
+        // --- UI Elements ---
+        const penTool = document.getElementById('pen-tool');
+        const eraserTool = document.getElementById('eraser-tool');
+        const textTool = document.getElementById('text-tool');
+        const stickyNoteTool = document.getElementById('sticky-note-tool');
+        const colorPalette = document.getElementById('color-palette');
+        const lineWidthSlider = document.getElementById('line-width');
+        const clearCanvasBtn = document.getElementById('clear-canvas');
+        const userInfo = document.getElementById('user-info');
+        const textModal = document.getElementById('text-modal');
+        const textInput = document.getElementById('text-input');
+        const cancelTextBtn = document.getElementById('cancel-text');
+        const submitTextBtn = document.getElementById('submit-text');
+        
+        let textCoords = { x: 0, y: 0 };
+        const processedDocs = new Set(); // To prevent re-drawing
+        let localDrawingCache = []; // Cache for redrawing on resize
+
+        // --- Canvas Logic ---
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            redrawCanvas();
+        }
+
+        function getEventCoordinates(event) {
+            if (event.touches && event.touches.length > 0) {
+                return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+            }
+            return { x: event.clientX, y: event.clientY };
+        }
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            const { x, y } = getEventCoordinates(e);
+            currentPath = [{ x, y }];
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = currentWidth;
+            if (currentTool === 'eraser') {
+                 ctx.globalCompositeOperation = 'destination-out';
+                 ctx.lineWidth = currentWidth * 2;
+            } else {
+                 ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const { x, y } = getEventCoordinates(e);
+            currentPath.push({ x, y });
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            ctx.closePath();
+            
+            if (currentPath.length > 1) {
+                saveToFirestore({
+                    type: currentTool,
+                    path: currentPath,
+                    color: currentColor,
+                    width: currentWidth,
+                    userId: userId
+                });
+            }
+            currentPath = [];
+        }
+
+        function saveToFirestore(data) {
+             addDoc(boardCollection, data).catch(err => console.error("Error writing document: ", err));
+        }
+
+        function drawFromData(data) {
+            ctx.beginPath();
+            const path = data.path;
+            if (!path || path.length < 1) return;
+            
+            ctx.moveTo(path[0].x, path[0].y);
+            
+            if (data.type === 'eraser') {
+                 ctx.globalCompositeOperation = 'destination-out';
+                 ctx.lineWidth = data.width * 2;
+                 ctx.strokeStyle = '#000000'; // Eraser color doesn't matter
+            } else { // 'pen'
+                 ctx.globalCompositeOperation = 'source-over';
+                 ctx.lineWidth = data.width;
+                 ctx.strokeStyle = data.color;
+            }
+            
+            path.forEach(point => {
+                ctx.lineTo(point.x, point.y);
+            });
+            ctx.stroke();
+            ctx.closePath();
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'source-over';
+        }
+        
+        function drawTextFromData(data) {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.font = `${data.size}px Inter`;
+            ctx.fillStyle = data.color;
+            ctx.fillText(data.text, data.x, data.y);
+        }
+
+        function drawStickyNoteFromData(data) {
+             ctx.globalCompositeOperation = 'source-over';
+             const padding = 10;
+             const fontSize = 16;
+             ctx.font = `${fontSize}px Inter`;
+             const textWidth = ctx.measureText(data.text).width;
+             const boxWidth = textWidth + padding * 2;
+             const boxHeight = fontSize + padding * 2;
+
+             // Draw background
+             ctx.fillStyle = data.bgColor;
+             ctx.fillRect(data.x - padding, data.y - fontSize - padding/2, boxWidth, boxHeight);
+             
+             // Draw text
+             ctx.fillStyle = data.color;
+             ctx.fillText(data.text, data.x, data.y);
+        }
+
+        // --- Tool Selection Logic ---
+        function setActiveTool(tool) {
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${tool}-tool`).classList.add('active');
+            currentTool = tool;
+        }
+
+        penTool.addEventListener('click', () => setActiveTool('pen'));
+        eraserTool.addEventListener('click', () => setActiveTool('eraser'));
+        
+        textTool.addEventListener('click', () => {
+             setActiveTool('text');
+             alert("Click on the canvas where you want to add text.");
+        });
+        stickyNoteTool.addEventListener('click', () => {
+             setActiveTool('sticky');
+             alert("Click on the canvas where you want to add a sticky note.");
+        });
+
+
+        // --- Color and Width ---
+        colorPalette.addEventListener('click', (e) => {
+            if (e.target.dataset.color) {
+                currentColor = e.target.dataset.color;
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                e.target.classList.add('selected');
+            }
+        });
+
+        lineWidthSlider.addEventListener('input', (e) => {
+            currentWidth = e.target.value;
+        });
+        
+        // --- Modal Logic ---
+        function showTextModal(x, y) {
+            textCoords = { x, y };
+            textModal.classList.remove('hidden');
+            textInput.value = '';
+            textInput.focus();
+        }
+
+        function hideTextModal() {
+            textModal.classList.add('hidden');
+        }
+
+        cancelTextBtn.addEventListener('click', hideTextModal);
+        submitTextBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if(text) {
+                const data = {
+                    type: currentTool, // 'text' or 'sticky'
+                    text: text,
+                    x: textCoords.x,
+                    y: textCoords.y,
+                    color: currentColor,
+                    size: currentWidth * 2 + 12, // Derive font size from line width
+                    userId: userId,
+                };
+                 if (currentTool === 'sticky') {
+                    data.bgColor = '#fff3bf'; // A nice yellow for sticky notes
+                 }
+                saveToFirestore(data);
+            }
+            hideTextModal();
+            setActiveTool('pen'); // Revert to pen tool
+        });
+
+        // --- Canvas Events ---
+        function handleCanvasClick(e) {
+            if (currentTool === 'text' || currentTool === 'sticky') {
+                const { x, y } = getEventCoordinates(e);
+                showTextModal(x,y);
+            }
+        }
+        
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('click', handleCanvasClick);
+        
+        // Touch events
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        window.addEventListener('resize', setCanvasSize);
+
+        // --- Clear Canvas ---
+        async function clearFirestoreCollection() {
+             const querySnapshot = await getDocs(boardCollection);
+             const deletePromises = [];
+             querySnapshot.forEach((docSnap) => {
+                 deletePromises.push(deleteDoc(doc(db, boardCollectionPath, docSnap.id)));
+             });
+             await Promise.all(deletePromises);
+        }
+        
+        clearCanvasBtn.addEventListener('click', () => {
+            if(confirm('Are you sure you want to clear the entire whiteboard for everyone?')) {
+                clearFirestoreCollection();
+            }
+        });
+        
+        // --- Redraw on resize ---
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            localDrawingCache.forEach(item => {
+                if (item.type === 'pen' || item.type === 'eraser') {
+                    drawFromData(item);
+                } else if (item.type === 'text') {
+                    drawTextFromData(item);
+                } else if (item.type === 'sticky') {
+                    drawStickyNoteFromData(item);
+                }
+            });
+        }
+        
+        // --- Main Execution ---
+        async function main() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                userId = auth.currentUser.uid;
+                userInfo.textContent = `Your ID: ${userId}`;
+                
+                // Listen for realtime updates
+                onSnapshot(query(boardCollection), (snapshot) => {
+                     let hasChanges = false;
+                     snapshot.docChanges().forEach((change) => {
+                         if (change.type === "added") {
+                             hasChanges = true;
+                             const data = change.doc.data();
+                             const docId = change.doc.id;
+                             
+                             if(!processedDocs.has(docId)) {
+                                 localDrawingCache.push(data); // Add to local cache for resize
+                                 if (data.type === 'pen' || data.type === 'eraser') {
+                                     drawFromData(data);
+                                 } else if (data.type === 'text') {
+                                     drawTextFromData(data);
+                                 } else if (data.type === 'sticky') {
+                                     drawStickyNoteFromData(data);
+                                 }
+                                 processedDocs.add(docId);
+                             }
+                         }
+                     });
+
+                     if (snapshot.empty && hasChanges === false && localDrawingCache.length > 0) {
+                        // This handles the case where the whole collection was deleted.
+                        processedDocs.clear();
+                        localDrawingCache = [];
+                        redrawCanvas();
+                     }
+
+                });
+
+            } catch (error) {
+                console.error("Authentication or Firestore setup failed:", error);
+                userInfo.textContent = "Error connecting. Please refresh.";
+            }
+
+            setCanvasSize();
+        }
+
+        main();
+    </script>
+</body>
+</html>
