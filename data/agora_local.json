@@ -1,0 +1,50 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.7223, 37.9758] },
+      "properties": {
+        "name": "Temple of Hephaistos",
+        "title": "Temple of Hephaistos",
+        "category": "cultural"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.7239, 37.9750] },
+      "properties": {
+        "name": "Stoa of Attalos",
+        "title": "Stoa of Attalos",
+        "category": "cultural"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.7213, 37.9748] },
+      "properties": {
+        "name": "Tholos",
+        "title": "Tholos",
+        "category": "democracy"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.7214, 37.9751] },
+      "properties": {
+        "name": "Bouleuterion",
+        "title": "Bouleuterion",
+        "category": "democracy"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.7232, 37.9757] },
+      "properties": {
+        "name": "Altar of the Twelve Gods",
+        "title": "Altar of the Twelve Gods",
+        "category": "cultural"
+      }
+    }
+  ]
+}
