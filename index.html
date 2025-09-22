@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Vibe vs. The Text: Australia's Constitution- COMPLETING THIS ACTIVITY GETS US A PE LESSON ON THURSDAY</title>
+  <title>The Vibe vs. The Text: Australia's Constitution — COMPLETING THIS ACTIVITY GETS US A PE LESSON ON THURSDAY</title>
   <meta name="description" content="Class activity pack + game: explore the 'vibe' people expect from a constitution vs the actual text of Australia's Constitution." />
 
   <!-- Fonts & Tailwind (no build step required) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Tailwind design tokens (tweak these to match your brand)
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -18,11 +17,7 @@
         extend: {
           fontFamily: { sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'] },
           colors: {
-            brand: {
-              50:  '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
-              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
-              800: '#1e40af', 900: '#1e3a8a'
-            }
+            brand: {50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a'}
           },
           boxShadow: { soft: '0 10px 30px rgba(2, 6, 23, 0.08)' }
         }
@@ -30,58 +25,49 @@
     }
   </script>
   <style>
-    /* Small polish */
     body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
     .lift { transition: transform .18s ease, box-shadow .18s ease; }
     .lift:hover { transform: translateY(-4px); box-shadow: 0 24px 40px rgba(2,6,23,.12); }
     @media (prefers-reduced-motion: reduce) { .lift { transition: none; } }
-    .activity-card{background:linear-gradient(135deg,rgba(219,234,254,.55),rgba(248,250,252,.92));border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);border:1px solid rgba(226,232,240,.9);backdrop-filter:blur(6px)}
+
+    .activity-card{
+      background:linear-gradient(135deg,rgba(219,234,254,.55),rgba(248,250,252,.92));
+      border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;
+      box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
+      border:1px solid rgba(226,232,240,.9);backdrop-filter:blur(6px)
+    }
     #game{background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(219,234,254,.7));border:1px solid rgba(191,219,254,.8);backdrop-filter:blur(8px);box-shadow:0 20px 40px rgba(15,23,42,.08)}
     .dark #game{background:rgba(15,23,42,.7);border-color:rgba(148,163,184,.45);box-shadow:none}
-    .dark .activity-card{background-color:rgba(2,6,23,.7);border-color:#1f2937}
+
+    /* Writing panels (Activity 2 & 3) */
     .writing-panel{display:flex;flex-direction:column;gap:.75rem;background:rgba(255,255,255,.92);border-radius:1rem;border:1px solid rgba(148,163,184,.4);padding:1.25rem;box-shadow:0 14px 30px rgba(15,23,42,.08);color:#1e3a8a}
     .dark .writing-panel{background:rgba(15,23,42,.72);border-color:rgba(148,163,184,.35);box-shadow:none;color:#e0e7ff}
     .writing-panel--accent{background:linear-gradient(135deg,rgba(196,181,253,.25),rgba(219,234,254,.24));border-color:rgba(168,85,247,.45)}
     .dark .writing-panel--accent{background:rgba(76,29,149,.45);border-color:rgba(168,85,247,.55)}
     .writing-panel--no-storage{border-color:rgba(249,115,22,.55)}
-    .writing-panel__header{display:flex;flex-direction:column;gap:.5rem}
     .writing-panel__title{font-weight:700;font-size:1.05rem;letter-spacing:-.01em}
-    .writing-panel__prompt{font-size:.92rem;line-height:1.5;color:inherit}
-    .dark .writing-panel__prompt{color:inherit}
-    .writing-panel textarea{width:100%;min-height:150px;resize:vertical;border:1px solid rgba(148,163,184,.6);border-radius:.85rem;padding:.85rem 1rem;font:inherit;background-color:rgba(248,250,252,.94);transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease;color:inherit}
+    .writing-panel textarea{width:100%;min-height:150px;resize:vertical;border:1px solid rgba(148,163,184,.6);border-radius:.85rem;padding:.85rem 1rem;font:inherit;background-color:rgba(248,250,252,.94);color:inherit}
     .writing-panel textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15);background-color:#fff}
-    .writing-panel textarea::placeholder{color:rgba(100,116,139,.8)}
-    .dark .writing-panel textarea{background-color:rgba(15,23,42,.65);border-color:rgba(148,163,184,.45);color:inherit}
-    .dark .writing-panel textarea:focus{border-color:rgba(96,165,250,.8);box-shadow:0 0 0 3px rgba(96,165,250,.18);background-color:rgba(15,23,42,.85)}
-    .writing-panel__footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;font-size:.875rem;color:inherit}
-    .dark .writing-panel__footer{color:inherit}
-    .writing-panel__status{display:flex;align-items:center;gap:.4rem;color:inherit}
+    .dark .writing-panel textarea{background-color:rgba(15,23,42,.65);border-color:rgba(148,163,184,.45)}
+    .writing-panel__footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;font-size:.875rem}
     .writing-panel__status[data-state="success"]{color:#15803d}
     .writing-panel__status[data-state="info"]{color:#0369a1}
     .writing-panel__status[data-state="error"]{color:#b91c1c}
     .writing-panel__status[data-state="saving"]{color:#2563eb}
     .writing-panel__status[data-state="muted"]{color:#475569}
-    .dark .writing-panel__status[data-state="muted"]{color:rgba(226,232,240,.78)}
-    .dark .writing-panel__status[data-state="success"]{color:#4ade80}
-    .dark .writing-panel__status[data-state="info"]{color:#38bdf8}
-    .dark .writing-panel__status[data-state="error"]{color:#f87171}
-    .dark .writing-panel__status[data-state="saving"]{color:#93c5fd}
-    .writing-panel__actions{display:flex;align-items:center;gap:1rem}
-    .writing-panel__count{font-variant-numeric:tabular-nums;font-weight:600}
-    .writing-panel__reset{border:1px solid rgba(148,163,184,.6);border-radius:9999px;padding:.35rem .85rem;font-size:.85rem;font-weight:600;color:#2563eb;background:rgba(255,255,255,.94);transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease}
-    .writing-panel__reset:hover{background-color:rgba(219,234,254,1);box-shadow:0 6px 12px rgba(37,99,235,.18);transform:translateY(-1px)}
-    .writing-panel__reset:focus-visible{outline:2px solid rgba(37,99,235,.5);outline-offset:2px}
-    .dark .writing-panel__reset{background:rgba(15,23,42,.62);border-color:rgba(148,163,184,.5);color:#93c5fd}
-    .dark .writing-panel__reset:hover{background:rgba(37,99,235,.22)}
+    .writing-panel__reset{border:1px solid rgba(148,163,184,.6);border-radius:9999px;padding:.35rem .85rem;font-size:.85rem;font-weight:600;color:#2563eb;background:#fff}
+    .writing-panel__reset:hover{background:#dbeafe}
   </style>
 </head>
 <body class="bg-gray-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100">
   <!-- Skip link -->
   <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 bg-brand-600 text-white px-3 py-2 rounded-lg">Skip to content</a>
 
-  <!-- Top ribbon (optional) -->
+  <!-- Top ribbon -->
   <div class="bg-gradient-to-r from-brand-600 to-brand-400 text-white text-sm">
-    <div class="container py-2 text-center">New classroom-ready version with a game! <a class="underline font-semibold" href="#activity-4">Jump to Game</a></div>
+    <div class="container py-2 text-center">
+      New classroom-ready version with a game! <a class="underline font-semibold" href="#activity-4">Jump to Game</a>
+    </div>
   </div>
 
   <!-- Header / Nav -->
@@ -140,7 +126,7 @@
             </div>
             <div>
               <dt class="font-semibold text-slate-700 dark:text-slate-200">Time needed</dt>
-              <dd class="text-slate-600 dark:text-slate-300">Approx. 2 × 50‑minute lessons.</dd>
+              <dd class="text-slate-600 dark:text-slate-300">Approx. 2 × 50-minute lessons.</dd>
             </div>
             <div>
               <dt class="font-semibold text-slate-700 dark:text-slate-200">Focus</dt>
@@ -167,7 +153,6 @@
       <div class="bg-white/90 dark:bg-slate-900/70 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800">
         <h2 id="intro-title" class="text-2xl font-extrabold mb-4 text-center">What's the "Vibe" of the Constitution?</h2>
         <p class="mb-4 text-slate-700 dark:text-slate-300">We often have a feeling about what a nation's most important document should do—fairness, rights, big principles. Watch this classic moment from <em>The Castle</em>.</p>
-        <!-- YouTube (privacy-enhanced) -->
         <div class="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
           <div class="pt-[56.25%]"></div>
           <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube-nocookie.com/embed/97IiPli_uXw" title="The Castle clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -177,89 +162,56 @@
     </section>
 
     <!-- Activity 1: Whiteboard “Big Paper” (same-origin embed) -->
-<section id="activity-1" class="activity-card">
-  <div class="flex items-start">
-    <div class="mr-4 shrink-0">
-      <div class="h-10 w-10 rounded-xl grid place-items-center bg-brand-100 text-brand-700 font-bold">1</div>
-    </div>
-    <div class="w-full">
-      <h2 class="text-2xl font-extrabold mb-3">The “Big Paper” Brainstorm 🤔</h2>
-      <p class="mb-4 text-lg">Use the class whiteboard to silently add ideas: key rules for fairness, limits on government, and rights to protect.</p>
+    <section id="activity-1" class="activity-card">
+      <div class="flex items-start">
+        <div class="mr-4 shrink-0">
+          <div class="h-10 w-10 rounded-xl grid place-items-center bg-brand-100 text-brand-700 font-bold">1</div>
+        </div>
+        <div class="w-full">
+          <h2 class="text-2xl font-extrabold mb-3">The “Big Paper” Brainstorm 🤔</h2>
+          <p class="mb-4 text-lg">Use the class whiteboard to silently add ideas: key rules for fairness, limits on government, and rights to protect.</p>
 
-      <!-- Toolbar -->
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <button id="wbExpand" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm">⛶ Full screen</button>
-        <button id="wbReset" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm">↺ Reset size</button>
-        <a href="./whiteboard/index.html" target="_blank" rel="noopener"
-           class="ml-auto inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90">
-          🔗 Open in new tab
-        </a>
-      </div>
-
-      <!-- Embed LOCAL whiteboard -->
-      <div id="wbWrap" class="relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
-        <iframe
-          id="wbFrame"
-          title="Class Whiteboard"
-          src="./whiteboard/index.html"  <!-- or: /civics_v2/whiteboard/index.html -->
-          width="100%" height="640" frameborder="0" loading="lazy"
-          allow="clipboard-write; fullscreen"
-          referrerpolicy="strict-origin-when-cross-origin"
-          class="block"></iframe>
-
-        <!-- Fallback overlay -->
-        <div id="wbFallback" class="hidden absolute inset-0 grid place-items-center bg-white/95 dark:bg-slate-900/95 text-center p-6">
-          <div>
-            <p class="text-slate-700 dark:text-slate-200 mb-3">
-              The whiteboard didn’t load here. Some networks block embedding.
-            </p>
+          <!-- Toolbar -->
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <button id="wbExpand" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm">⛶ Full screen</button>
+            <button id="wbReset" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm">↺ Reset size</button>
             <a href="./whiteboard/index.html" target="_blank" rel="noopener"
-               class="inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90">
+               class="ml-auto inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90">
               🔗 Open in new tab
             </a>
           </div>
+
+          <!-- Embed LOCAL whiteboard -->
+          <div id="wbWrap" class="relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+            <iframe
+              id="wbFrame"
+              title="Class Whiteboard"
+              src="./whiteboard/index.html"  <!-- change to /civics_v2/whiteboard/index.html if needed -->
+              width="100%" height="640" frameborder="0" loading="lazy"
+              allow="clipboard-write; fullscreen"
+              referrerpolicy="strict-origin-when-cross-origin"
+              class="block"></iframe>
+
+            <!-- Fallback overlay -->
+            <div id="wbFallback" class="hidden absolute inset-0 grid place-items-center bg-white/95 dark:bg-slate-900/95 text-center p-6">
+              <div>
+                <p class="text-slate-700 dark:text-slate-200 mb-3">
+                  The whiteboard didn’t load here. Some networks block embedding.
+                </p>
+                <a href="./whiteboard/index.html" target="_blank" rel="noopener"
+                   class="inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90">
+                  🔗 Open in new tab
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Tip: Use full screen for group work. Writing only on the board — no talking!
+          </p>
         </div>
       </div>
-
-      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-        Tip: Use full screen for group work. Writing only on the board — no talking!
-      </p>
-    </div>
-  </div>
-</section>
-
-<script>
-  // Fullscreen + gentle fallback for the Activity 1 whiteboard
-  (function(){
-    const wrap = document.getElementById('wbWrap');
-    const frame = document.getElementById('wbFrame');
-    const expand = document.getElementById('wbExpand');
-    const reset = document.getElementById('wbReset');
-    const fallback = document.getElementById('wbFallback');
-
-    expand.addEventListener('click', async () => {
-      try { await wrap.requestFullscreen(); } catch(e) {}
-    });
-    reset.addEventListener('click', () => {
-      if (document.fullscreenElement) document.exitFullscreen();
-      frame.style.height = '640px';
-    });
-
-    // After 5s, if nothing appears, show fallback overlay
-    let shown = false;
-    setTimeout(() => {
-      if (shown) return;
-      fallback.classList.remove('hidden');
-      shown = true;
-    }, 5000);
-
-    // Resize iframe height when entering/leaving fullscreen
-    document.addEventListener('fullscreenchange', () => {
-      frame.style.height = (document.fullscreenElement === wrap) ? '100vh' : '640px';
-    });
-  })();
-</script>
-
+    </section>
 
     <!-- Activity 2 -->
     <section id="activity-2" class="activity-card">
@@ -276,13 +228,14 @@
               Your browser does not support the video tag.
             </video>
           </div>
-          <h3 class="text-xl font-extrabold mb-3">Five‑Finger Summaries 🖐️</h3>
+          <h3 class="text-xl font-extrabold mb-3">Five-Finger Summaries 🖐️</h3>
           <p class="mb-4">Use the shared writing panels below to capture what each idea means in the Australian Constitution.</p>
+
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <article class="writing-panel" data-writing-panel data-storage-key="five-separation">
-              <div class="writing-panel__header">
+              <div>
                 <h4 id="separation-title" class="writing-panel__title">Separation of Powers</h4>
-                <p id="prompt-separation" class="writing-panel__prompt">Summarise how the Constitution divides law-making, enforcing, and interpreting powers between Parliament, the Executive, and the High Court. Aim for 30–50 words.</p>
+                <p id="prompt-separation" class="text-sm">Summarise how the Constitution divides law-making, enforcing, and interpreting powers between Parliament, the Executive, and the High Court. Aim for 30–50 words.</p>
               </div>
               <label class="sr-only" for="summary-separation">Write a summary for Separation of Powers</label>
               <textarea id="summary-separation" data-writing-input rows="5" aria-labelledby="separation-title" aria-describedby="prompt-separation" placeholder="Which branch does what? Include one detail or example from the video."></textarea>
@@ -296,9 +249,9 @@
             </article>
 
             <article class="writing-panel" data-writing-panel data-storage-key="five-division">
-              <div class="writing-panel__header">
+              <div>
                 <h4 id="division-title" class="writing-panel__title">Division of Powers</h4>
-                <p id="prompt-division" class="writing-panel__prompt">Explain how national and state governments split responsibilities. Name at least one Commonwealth power from the video. Aim for 30–50 words.</p>
+                <p id="prompt-division" class="text-sm">Explain how national and state governments split responsibilities. Name at least one Commonwealth power from the video. Aim for 30–50 words.</p>
               </div>
               <label class="sr-only" for="summary-division">Write a summary for Division of Powers</label>
               <textarea id="summary-division" data-writing-input rows="5" aria-labelledby="division-title" aria-describedby="prompt-division" placeholder="What does the Commonwealth control? What stays with the states?"></textarea>
@@ -312,9 +265,9 @@
             </article>
 
             <article class="writing-panel" data-writing-panel data-storage-key="five-rule">
-              <div class="writing-panel__header">
+              <div>
                 <h4 id="rule-title" class="writing-panel__title">The Rule of Law</h4>
-                <p id="prompt-rule" class="writing-panel__prompt">Describe what the rule of law means in Australia's system and how the Constitution protects it. Aim for 30–50 words.</p>
+                <p id="prompt-rule" class="text-sm">Describe what the rule of law means in Australia and how the Constitution protects it. Aim for 30–50 words.</p>
               </div>
               <label class="sr-only" for="summary-rule">Write a summary for the Rule of Law</label>
               <textarea id="summary-rule" data-writing-input rows="5" aria-labelledby="rule-title" aria-describedby="prompt-rule" placeholder="Who must follow the law? Mention any safeguards or courts that enforce it."></textarea>
@@ -328,9 +281,9 @@
             </article>
 
             <article class="writing-panel" data-writing-panel data-storage-key="five-representative">
-              <div class="writing-panel__header">
+              <div>
                 <h4 id="representative-title" class="writing-panel__title">Representative &amp; Responsible Government</h4>
-                <p id="prompt-representative" class="writing-panel__prompt">Outline how elections and accountability keep leaders answerable to the people. Include one example from the video. Aim for 30–50 words.</p>
+                <p id="prompt-representative" class="text-sm">Outline how elections and accountability keep leaders answerable to the people. Include one example from the video. Aim for 30–50 words.</p>
               </div>
               <label class="sr-only" for="summary-representative">Write a summary for Representative and Responsible Government</label>
               <textarea id="summary-representative" data-writing-input rows="5" aria-labelledby="representative-title" aria-describedby="prompt-representative" placeholder="How are members chosen? How must the government answer to Parliament?"></textarea>
@@ -344,9 +297,9 @@
             </article>
 
             <article class="writing-panel md:col-span-2" data-writing-panel data-storage-key="five-rights">
-              <div class="writing-panel__header">
+              <div>
                 <h4 id="rights-title" class="writing-panel__title">Rights in the Constitution</h4>
-                <p id="prompt-rights" class="writing-panel__prompt">Identify the specific rights named in the Constitution and note any limits or rights that are missing. Aim for 40–60 words.</p>
+                <p id="prompt-rights" class="text-sm">Identify the specific rights named in the Constitution and note any limits or rights that are missing. Aim for 40–60 words.</p>
               </div>
               <label class="sr-only" for="summary-rights">Write a summary for Rights in the Constitution</label>
               <textarea id="summary-rights" data-writing-input rows="5" aria-labelledby="rights-title" aria-describedby="prompt-rights" placeholder="Which rights are explicit? Which did you expect but not find?"></textarea>
@@ -380,10 +333,10 @@
           </ul>
           <div class="mt-6">
             <article class="writing-panel writing-panel--accent" data-writing-panel data-storage-key="showdown-reflection">
-              <div class="writing-panel__header">
+              <div>
                 <h3 id="showdown-title" class="writing-panel__title">Showdown Reflection Paragraph</h3>
-                <p id="prompt-showdown" class="writing-panel__prompt">Use the guiding questions to craft a concluding paragraph that compares the class "vibe" with the constitutional text. Aim for four to five sentences.</p>
-                <ol id="showdown-steps" class="list-decimal list-inside space-y-1 text-sm text-slate-600 dark:text-slate-200">
+                <p id="prompt-showdown" class="text-sm">Use the guiding questions to craft a concluding paragraph that compares the class "vibe" with the constitutional text. Aim for four to five sentences.</p>
+                <ol id="showdown-steps" class="list-decimal list-inside space-y-1 text-sm text-slate-600 dark:text-slate-200 mt-2">
                   <li>Start with a topic sentence that states the contrast.</li>
                   <li>Include one detail from your Big Paper ideas and one from the video.</li>
                   <li>Explain why the differences exist in the 1901 context.</li>
@@ -405,30 +358,6 @@
       </div>
     </section>
 
-    <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Vibe vs. The Text: Australia's Constitution</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body { font-family: 'Inter', sans-serif; }
-      .activity-card{background:linear-gradient(135deg,rgba(219,234,254,.55),rgba(248,250,252,.92));border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);border:1px solid rgba(226,232,240,.9);backdrop-filter:blur(6px)}
-      #game{background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(219,234,254,.7));border:1px solid rgba(191,219,254,.8);backdrop-filter:blur(8px);box-shadow:0 20px 40px rgba(15,23,42,.08)}
-      .dark #game{background:rgba(15,23,42,.7);border-color:rgba(148,163,184,.45);box-shadow:none}
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 antialiased">
-
-  <div class="container mx-auto px-4 py-8 md:py-12">
-    <header class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">🏛️ The Vibe vs. The Text</h1>
-      <p class="text-lg text-gray-600 max-w-3xl mx-auto">Exploring Australia's Constitution</p>
-    </header>
-
-    <!-- Existing activities 1, 2, 3 will stay as in your version -->
-    
     <!-- Activity 4: Constitution Game -->
     <section id="activity-4" class="activity-card">
       <div class="flex items-start">
@@ -437,7 +366,7 @@
         </div>
         <div class="flex-1">
           <h2 class="text-2xl font-extrabold mb-3">Constitution Game 🎮</h2>
-          <p class="mb-4">Test your knowledge! Decide if each statement is part of the actual <strong>Text</strong> of the Constitution or just the <strong>Vibe</strong>.</p>
+          <p class="mb-4">Decide if each statement is part of the actual <strong>Text</strong> of the Constitution or just the <strong>Vibe</strong>.</p>
           <div id="game" class="max-w-xl mx-auto bg-white rounded-xl shadow p-6 border border-gray-200">
             <div id="question" class="text-lg font-medium text-center mb-4 text-black dark:text-black"></div>
             <div class="flex justify-center gap-4 mb-4">
@@ -458,186 +387,144 @@
     <footer id="resources" class="text-center mt-12">
       <h2 class="text-xl font-bold mb-4">📚 Resources</h2>
       <div class="flex justify-center space-x-4 text-blue-600 hover:text-blue-800">
-        <a href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-australian-constitution-video/" target="_blank">PEO Video Page</a>
+        <a href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-australian-constitution-video/" target="_blank" rel="noopener">PEO Video Page</a>
         <span class="text-gray-400">|</span>
-        <a href="https://www.facinghistory.org/resource-library/big-paper" target="_blank">"Big Paper" Strategy</a>
+        <a href="https://www.facinghistory.org/resource-library/big-paper" target="_blank" rel="noopener">"Big Paper" Strategy</a>
         <span class="text-gray-400">|</span>
-        <a href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-constitution" target="_blank">Full Text of the Constitution</a>
+        <a href="https://peo.gov.au/understand-our-parliament/how-parliament-works/the-australian-constitution/the-constitution" target="_blank" rel="noopener">Full Text of the Constitution</a>
       </div>
       <p class="text-sm text-gray-500 mt-4">© <span id="year"></span> Civics Toolkit</p>
     </footer>
-  </div>
+  </main>
 
+  <!-- ===== Scripts ===== -->
+
+  <!-- Nav + Dark mode + Footer year -->
+  <script>
+    // Mobile menu
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    // Dark mode (persist)
+    const toggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    const KEY = 'theme';
+    const saved = localStorage.getItem(KEY);
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+    toggle?.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem(KEY, root.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+  <!-- Activity 1: Whiteboard fullscreen + fallback -->
+  <script>
+    (function(){
+      const wrap = document.getElementById('wbWrap');
+      const frame = document.getElementById('wbFrame');
+      const expand = document.getElementById('wbExpand');
+      const reset = document.getElementById('wbReset');
+      const fallback = document.getElementById('wbFallback');
+
+      expand.addEventListener('click', async () => { try { await wrap.requestFullscreen(); } catch(e){} });
+      reset.addEventListener('click', () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        frame.style.height = '640px';
+      });
+
+      // Show fallback hint after 5s if nothing visible
+      let shown = false;
+      setTimeout(() => { if (!shown) { fallback.classList.remove('hidden'); shown = true; } }, 5000);
+
+      document.addEventListener('fullscreenchange', () => {
+        frame.style.height = (document.fullscreenElement === wrap) ? '100vh' : '640px';
+      });
+    })();
+  </script>
+
+  <!-- Writing panels autosave -->
   <script>
     (function(){
       const panels = Array.from(document.querySelectorAll('[data-writing-panel]'));
       if (!panels.length) return;
 
       const storagePrefix = 'civics-writing-panel-';
-      let storageAvailable = true;
-      let storage;
+      let storageAvailable = true, storage;
 
       try {
         storage = window.localStorage;
-        const probeKey = storagePrefix + 'probe';
-        storage.setItem(probeKey, 'ok');
-        storage.removeItem(probeKey);
-      } catch (error) {
-        storageAvailable = false;
-        storage = null;
-      }
+        const k = storagePrefix + 'probe';
+        storage.setItem(k, 'ok'); storage.removeItem(k);
+      } catch { storageAvailable = false; storage = null; }
 
       const watchers = [];
-
-      function setStatus(statusEl, message, state){
-        if (!statusEl) return;
-        statusEl.textContent = message;
-        if (state) {
-          statusEl.setAttribute('data-state', state);
-        } else {
-          statusEl.removeAttribute('data-state');
-        }
-      }
-
-      function countWords(text){
-        if (!text) return 0;
-        const trimmed = text.trim();
-        if (!trimmed) return 0;
-        return trimmed.split(/\s+/).filter(Boolean).length;
-      }
-
-      function formatCount(count){
-        return `${count} word${count === 1 ? '' : 's'}`;
-      }
-
-      function broadcastStorageDisabled(){
+      function setStatus(el, msg, state){ if(!el) return; el.textContent = msg; state? el.setAttribute('data-state', state):el.removeAttribute('data-state'); }
+      function countWords(t){ t=(t||'').trim(); return t? t.split(/\s+/).filter(Boolean).length:0; }
+      function fmt(n){ return `${n} word${n===1?'':'s'}`; }
+      function broadcastNoStorage(){
         if (!storageAvailable) return;
-        storageAvailable = false;
-        storage = null;
-        watchers.forEach((item) => {
-          if (typeof item.cancel === 'function') item.cancel();
-          if (typeof item.clearPending === 'function') item.clearPending();
-          item.panel.classList.add('writing-panel--no-storage');
-          setStatus(item.statusEl, 'Autosave unavailable — your writing stays only while this tab is open.', 'error');
-        });
+        storageAvailable = false; storage = null;
+        watchers.forEach(w => { w.cancel?.(); w.clearPending?.(); w.panel.classList.add('writing-panel--no-storage'); setStatus(w.statusEl,'Autosave unavailable — your writing stays only while this tab is open.','error'); });
       }
 
-      panels.forEach((panel, index) => {
+      panels.forEach((panel, i) => {
         const textarea = panel.querySelector('[data-writing-input]');
         const statusEl = panel.querySelector('[data-writing-status]');
         const countEl = panel.querySelector('[data-writing-count]');
         const resetBtn = panel.querySelector('[data-writing-reset]');
-
         if (!textarea || !statusEl || !countEl) return;
 
-        const storageKey = storagePrefix + (panel.getAttribute('data-storage-key') || textarea.id || index);
-        let revertTimer = null;
-        let pendingSave = null;
-
+        const key = storagePrefix + (panel.getAttribute('data-storage-key') || textarea.id || i);
+        let revertTimer=null, pending=null;
         const watcher = {
-          panel,
-          statusEl,
-          cancel(){
-            if (revertTimer){
-              clearTimeout(revertTimer);
-              revertTimer = null;
-            }
-          },
-          clearPending(){
-            if (pendingSave){
-              clearTimeout(pendingSave);
-              pendingSave = null;
-            }
-          }
+          panel, statusEl,
+          cancel(){ if(revertTimer){clearTimeout(revertTimer); revertTimer=null;} },
+          clearPending(){ if(pending){clearTimeout(pending); pending=null;} }
         };
-
         watchers.push(watcher);
 
-        function updateStatus(message, state, revertToReady = false){
-          setStatus(statusEl, message, state);
-          watcher.cancel();
-          if (revertToReady && storageAvailable && storage){
-            revertTimer = window.setTimeout(() => {
-              setStatus(statusEl, 'Autosave ready.', 'muted');
-              revertTimer = null;
-            }, 2200);
+        function updateStatus(msg,state,revert=false){
+          setStatus(statusEl,msg,state); watcher.cancel();
+          if (revert && storageAvailable && storage){
+            revertTimer = setTimeout(()=>{ setStatus(statusEl,'Autosave ready.','muted'); revertTimer=null; },2200);
           }
         }
-
-        function updateCount(){
-          const words = countWords(textarea.value);
-          countEl.textContent = formatCount(words);
-        }
-
+        function updateCount(){ countEl.textContent = fmt(countWords(textarea.value)); }
         function persist(){
           if (!storageAvailable || !storage) return;
-          try {
-            if (textarea.value){
-              storage.setItem(storageKey, textarea.value);
-            } else {
-              storage.removeItem(storageKey);
-            }
-            updateStatus('Saved just now.', 'success', true);
-          } catch (error) {
-            broadcastStorageDisabled();
-          }
+          try { textarea.value ? storage.setItem(key, textarea.value) : storage.removeItem(key);
+                updateStatus('Saved just now.','success',true);
+          } catch { broadcastNoStorage(); }
         }
-
         function scheduleSave(){
           updateCount();
-          if (!storageAvailable || !storage){
-            updateStatus('Autosave unavailable — your writing stays only while this tab is open.', 'error');
-            return;
-          }
-          updateStatus('Saving…', 'saving');
-          watcher.clearPending();
-          pendingSave = window.setTimeout(() => {
-            pendingSave = null;
-            persist();
-          }, 400);
+          if (!storageAvailable || !storage){ updateStatus('Autosave unavailable — your writing stays only while this tab is open.','error'); return; }
+          updateStatus('Saving…','saving'); watcher.clearPending();
+          pending = setTimeout(()=>{ pending=null; persist(); },400);
         }
 
         if (storageAvailable && storage){
-          const stored = storage.getItem(storageKey);
-          if (typeof stored === 'string'){
-            textarea.value = stored;
-            updateStatus('Restored from your last visit.', 'info', true);
-          } else {
-            updateStatus('Autosave ready.', 'muted');
-          }
-        } else {
-          panel.classList.add('writing-panel--no-storage');
-          updateStatus('Autosave unavailable — your writing stays only while this tab is open.', 'error');
-        }
+          const stored = storage.getItem(key);
+          if (typeof stored === 'string'){ textarea.value = stored; updateStatus('Restored from your last visit.','info',true); }
+          else { updateStatus('Autosave ready.','muted'); }
+        } else { panel.classList.add('writing-panel--no-storage'); updateStatus('Autosave unavailable — your writing stays only while this tab is open.','error'); }
 
         updateCount();
-
         textarea.addEventListener('input', scheduleSave);
-        textarea.addEventListener('blur', () => {
-          watcher.clearPending();
-          persist();
-        });
-
-        if (resetBtn){
-          resetBtn.addEventListener('click', () => {
-            watcher.clearPending();
-            textarea.value = '';
-            if (storageAvailable && storage){
-              try {
-                storage.removeItem(storageKey);
-              } catch (error) {
-                broadcastStorageDisabled();
-              }
-            }
-            updateCount();
-            updateStatus('Cleared. Start fresh.', 'muted', true);
-            textarea.focus();
-          });
-        }
+        textarea.addEventListener('blur', ()=>{ watcher.clearPending(); persist(); });
+        resetBtn?.addEventListener('click', ()=>{ watcher.clearPending(); textarea.value=''; try{ storage?.removeItem(key);}catch{ broadcastNoStorage(); } updateCount(); updateStatus('Cleared. Start fresh.','muted',true); textarea.focus(); });
       });
     })();
+  </script>
 
-    // Constitution Game logic (Easy Mode + vocab help + read aloud)
+  <!-- Game logic -->
+  <script>
     (function(){
       const easyQuestions = [
         { q: "The Constitution names the Prime Minister.", a: "vibe", exp: "No. The words ‘Prime Minister’ are not in the Constitution." },
@@ -648,10 +535,9 @@
         { q: "The Constitution lets Parliament make marriage laws.", a: "text", exp: "Yes. Marriage is one of the listed topics (powers)." },
         { q: "The job ‘Prime Minister’ is a tradition, not written in the Constitution.", a: "text", exp: "Right. It’s a practice (a ‘convention’), not written in the words." }
       ];
-
       const standardQuestions = [
         { q: "The Prime Minister is mentioned in the Constitution.", a: "vibe", exp: "The Constitution does not mention the PM — it mostly covers Parliament, the Crown and the courts." },
-        { q: "The Constitution sets out rules for dividing power between the states and federal government.", a: "text", exp: "Yes — division of powers is a core part of the document (for example, section 51 lists Commonwealth powers)." },
+        { q: "The Constitution sets out rules for dividing power between the states and federal government.", a: "text", exp: "Yes — division of powers is a core part of the document (e.g., s 51)." },
         { q: "Environmental protection is a key principle in the Constitution.", a: "vibe", exp: "No — the 1901 text doesn’t include environment or climate references." },
         { q: "It establishes the High Court of Australia.", a: "text", exp: "Correct — the Constitution creates the High Court and its role (Chapter III)." },
         { q: "It includes a Bill of Rights protecting free speech.", a: "vibe", exp: "No general Bill of Rights exists — only a few limited rights are in the text." },
@@ -665,7 +551,6 @@
       const sEl = document.getElementById('score');
       const nextBtn = document.getElementById('nextBtn');
 
-      // Build a small control bar (Easy Mode + Read Aloud + Vocab help)
       const controls = document.createElement('div');
       controls.className = 'flex flex-wrap items-center justify-between gap-3 mb-4';
       controls.innerHTML = `
@@ -689,7 +574,6 @@
       const easyToggle = document.getElementById('easyToggle');
       const speakBtn = document.getElementById('speakBtn');
 
-      // Friendlier button labels
       const btnVibe = Array.from(gameEl.querySelectorAll('button')).find(b => (b.getAttribute('onclick')||'').includes("answer('vibe'"));
       const btnText = Array.from(gameEl.querySelectorAll('button')).find(b => (b.getAttribute('onclick')||'').includes("answer('text'"));
       if (btnVibe) btnVibe.textContent = '💡 Idea (Vibe)';
@@ -709,12 +593,8 @@
       window.answer = function(choice){
         const arr = activeSet();
         const q = arr[current];
-        if (choice === q.a) {
-          score++;
-          fEl.innerHTML = `<span class="text-green-600 font-bold">✔ Correct!</span> ${q.exp}`;
-        } else {
-          fEl.innerHTML = `<span class="text-red-600 font-bold">✘ Incorrect.</span> ${q.exp}`;
-        }
+        if (choice === q.a) { score++; fEl.innerHTML = `<span class="text-green-600 font-bold">✔ Correct!</span> ${q.exp}`; }
+        else { fEl.innerHTML = `<span class="text-red-600 font-bold">✘ Incorrect.</span> ${q.exp}`; }
         nextBtn.classList.remove('hidden');
         sEl.textContent = `Score: ${score}/${current+1}`;
       }
@@ -722,9 +602,8 @@
       window.nextQuestion = function(){
         const arr = activeSet();
         current++;
-        if (current < arr.length) {
-          loadQuestion();
-        } else {
+        if (current < arr.length) { loadQuestion(); }
+        else {
           qEl.textContent = 'Game Over! 🎉';
           fEl.textContent = `Your final score is ${score}/${arr.length}.`;
           nextBtn.textContent = 'Play Again';
@@ -732,13 +611,7 @@
         }
       }
 
-      function restart(){
-        current = 0; score = 0;
-        nextBtn.textContent = 'Next →';
-        nextBtn.onclick = window.nextQuestion;
-        loadQuestion();
-      }
-
+      function restart(){ current = 0; score = 0; nextBtn.textContent = 'Next →'; nextBtn.onclick = window.nextQuestion; loadQuestion(); }
       easyToggle.addEventListener('change', () => { useEasy = easyToggle.checked; restart(); });
 
       function speak(text){
@@ -748,15 +621,12 @@
           const u = new SpeechSynthesisUtterance(text);
           u.lang = 'en-AU';
           window.speechSynthesis.speak(u);
-        } catch(e) { /* no-op if not supported */ }
+        } catch {}
       }
       speakBtn.addEventListener('click', () => { speak(qEl.textContent + '. ' + fEl.textContent); });
 
       loadQuestion();
     })();
-
-    // Footer year
-    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
