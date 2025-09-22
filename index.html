@@ -182,43 +182,30 @@
           <h2 class="text-2xl font-extrabold mb-3">The “Big Paper” Brainstorm 🤔</h2>
           <p class="mb-4 text-lg">Use the class whiteboard to silently add ideas: key rules for fairness, limits on government, and rights to protect.</p>
 
-          <!-- Toolbar -->
-          <div class="flex flex-wrap items-center gap-2 mb-3">
-            <button id="wbExpand" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm">⛶ Full screen</button>
-            <button id="wbReset" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm">↺ Reset size</button>
-            <a href="./whiteboard/index.html" target="_blank" rel="noopener"
-               class="ml-auto inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90">
-              🔗 Open in new tab
-            </a>
-          </div>
-
-          <!-- Embed LOCAL whiteboard -->
-          <div id="wbWrap" class="relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+          <!-- Activity 1 Whiteboard (same-origin iframe) -->
+          <div class="h-[640px] rounded-lg overflow-hidden border">
+            <!-- NOTE: use a RELATIVE path so it works on GitHub Pages project sites -->
             <iframe
-              id="wbFrame"
+              id="classWhiteboard"
+              src="./whiteboard/"
               title="Class Whiteboard"
-              src="./whiteboard/index.html"  <!-- change to /civics_v2/whiteboard/index.html if needed -->
-              width="100%" height="640" frameborder="0" loading="lazy"
-              allow="clipboard-write; fullscreen"
-              referrerpolicy="strict-origin-when-cross-origin"
-              class="block"></iframe>
-
-            <!-- Fallback overlay -->
-            <div id="wbFallback" class="hidden absolute inset-0 grid place-items-center bg-white/95 dark:bg-slate-900/95 text-center p-6">
-              <div>
-                <p class="text-slate-700 dark:text-slate-200 mb-3">
-                  The whiteboard didn’t load here. Some networks block embedding.
-                </p>
-                <a href="./whiteboard/index.html" target="_blank" rel="noopener"
-                   class="inline-flex items-center rounded-xl bg-brand-600 px-4 py-2 text-white font-semibold shadow-soft hover:opacity-90">
-                  🔗 Open in new tab
-                </a>
-              </div>
-            </div>
+              class="w-full h-full"
+              allow="clipboard-read; clipboard-write"
+              referrerpolicy="no-referrer"
+            ></iframe>
           </div>
+
+          <script>
+            // Optional: tiny load check + fallback link
+            const wb = document.getElementById('classWhiteboard');
+            const fallback = document.createElement('p');
+            fallback.className = 'mt-2 text-sm text-slate-600';
+            fallback.innerHTML = 'If the whiteboard does not appear, <a class="underline" target="_blank" rel="noopener" href="./whiteboard/">open it in a new tab</a>.';
+            wb.addEventListener('load', () => wb.insertAdjacentElement('afterend', fallback));
+          </script>
 
           <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            Tip: Use full screen for group work. Writing only on the board — no talking!
+            Tip: Use the class whiteboard to capture every idea. Writing only — no talking!
           </p>
         </div>
       </div>
@@ -485,31 +472,6 @@
 
     // Footer year
     document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
-
-  <!-- Activity 1: Whiteboard fullscreen + fallback -->
-  <script>
-    (function(){
-      const wrap = document.getElementById('wbWrap');
-      const frame = document.getElementById('wbFrame');
-      const expand = document.getElementById('wbExpand');
-      const reset = document.getElementById('wbReset');
-      const fallback = document.getElementById('wbFallback');
-
-      expand.addEventListener('click', async () => { try { await wrap.requestFullscreen(); } catch(e){} });
-      reset.addEventListener('click', () => {
-        if (document.fullscreenElement) document.exitFullscreen();
-        frame.style.height = '640px';
-      });
-
-      // Show fallback hint after 5s if nothing visible
-      let shown = false;
-      setTimeout(() => { if (!shown) { fallback.classList.remove('hidden'); shown = true; } }, 5000);
-
-      document.addEventListener('fullscreenchange', () => {
-        frame.style.height = (document.fullscreenElement === wrap) ? '100vh' : '640px';
-      });
-    })();
   </script>
 
   <!-- Writing panels autosave -->
