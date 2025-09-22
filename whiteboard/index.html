@@ -64,15 +64,17 @@
         
         <!-- Clear Canvas -->
         <div class="border-l pl-2">
-            <button id="clear-canvas" class="p-2 rounded-md hover:bg-red-500 hover:text-white" title="Clear Canvas">
+            <button id="clear-canvas" data-teacher-only class="p-2 rounded-md hover:bg-red-500 hover:text-white" title="Clear Canvas">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
             </button>
         </div>
     </div>
 
     <!-- User ID Display -->
-    <div id="user-info" class="fixed bottom-4 left-4 bg-white shadow-lg rounded-lg p-2 px-4 z-10 text-sm text-slate-700">
-        Loading...
+    <div id="user-info" class="fixed bottom-4 left-4 bg-white shadow-lg rounded-lg p-3 px-4 z-10 text-sm text-slate-700 space-y-2">
+        <div id="wb-status" class="font-medium">Loading...</div>
+        <button id="wb-sign-in" class="w-full rounded-md bg-blue-500 px-3 py-1 text-white text-sm font-semibold hover:bg-blue-600">Sign in with Google</button>
+        <button id="wb-sign-out" class="hidden w-full rounded-md bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-300">Sign out</button>
     </div>
 
     <!-- Text Input Modal -->
@@ -88,46 +90,41 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase Initialization ---
-
-        // =================================================================================
-        // 1. If running in a special environment, the config is provided automatically.
-        // 2. If running this file locally, paste your Firebase config object here.
-        // =================================================================================
-        const userProvidedConfig = {
-          apiKey: "AIzaSyCureZTEOUOdwc6ZVv0oO0BRovLBFlHmmA",
-          authDomain: "whiteboard-cf44a.firebaseapp.com",
-          projectId: "whiteboard-cf44a",
-          storageBucket: "whiteboard-cf44a.appspot.com",
-          messagingSenderId: "107168944170",
-          appId: "1:107168944170:web:607e9d1ec7ee70bf3b3353",
-          measurementId: "G-3NRK8DREK4"
+        const firebaseConfig = {
+          apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
+          authDomain: "save-a9ea5.firebaseapp.com",
+          projectId: "save-a9ea5",
+          storageBucket: "save-a9ea5.firebasestorage.app",
+          messagingSenderId: "266526082951",
+          appId: "1:266526082951:web:dea4164197d3ff3f02f522"
         };
-        
-        // Use the environment-provided config if available, otherwise fall back to the user's.
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : userProvidedConfig;
-
-        // These variables are for specific environments.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-local-whiteboard';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let userId;
+        const TEACHERS = [
+          'dmaher42@hotmail.com',
+          // 'your.name@mbhs.sa.edu.au',
+        ];
+        const teacherEmails = TEACHERS.map(email => email.toLowerCase());
+        const isTeacherEmail = (email = '') => teacherEmails.includes(email.toLowerCase());
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-local-whiteboard';
+
+        let userId = null;
         const boardCollectionPath = `/artifacts/${appId}/public/data/board`;
         const boardCollection = collection(db, boardCollectionPath);
 
         // --- Canvas Setup ---
         const canvas = document.getElementById('whiteboard');
         const ctx = canvas.getContext('2d');
+        canvas.style.pointerEvents = 'none';
         let isDrawing = false;
         let currentTool = 'pen';
         let currentColor = 'black';
@@ -142,7 +139,10 @@
         const colorPalette = document.getElementById('color-palette');
         const lineWidthSlider = document.getElementById('line-width');
         const clearCanvasBtn = document.getElementById('clear-canvas');
-        const userInfo = document.getElementById('user-info');
+        if (clearCanvasBtn) clearCanvasBtn.style.display = 'none';
+        const statusText = document.getElementById('wb-status');
+        const signInBtn = document.getElementById('wb-sign-in');
+        const signOutBtnEl = document.getElementById('wb-sign-out');
         const textModal = document.getElementById('text-modal');
         const textInput = document.getElementById('text-input');
         const cancelTextBtn = document.getElementById('cancel-text');
@@ -151,6 +151,127 @@
         let textCoords = { x: 0, y: 0 };
         const processedDocs = new Set(); // To prevent re-drawing
         let localDrawingCache = []; // Cache for redrawing on resize
+        let unsubscribeBoard = null;
+
+        function startLogin() {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
+            if (statusText) statusText.textContent = 'Opening Google sign-in...';
+            signInBtn?.setAttribute('disabled', 'true');
+
+            signInWithPopup(auth, provider)
+                .then(() => console.debug('[whiteboard] popup sign-in success'))
+                .catch(async (error) => {
+                    console.warn('[whiteboard] popup sign-in failed, attempting redirect', error.code, error.message);
+                    if (
+                        error.code === 'auth/operation-not-supported-in-this-environment' ||
+                        error.code === 'auth/popup-blocked' ||
+                        error.code === 'auth/popup-closed-by-user' ||
+                        error.code === 'auth/auth-domain-config-required'
+                    ) {
+                        await signInWithRedirect(auth, provider);
+                        return;
+                    }
+                    alert('Sign-in failed. Check Firebase authorized domains and try again.');
+                    if (statusText) statusText.textContent = 'Sign-in failed. Please try again.';
+                })
+                .finally(() => {
+                    signInBtn?.removeAttribute('disabled');
+                });
+        }
+
+        signInBtn?.addEventListener('click', startLogin);
+        signOutBtnEl?.addEventListener('click', () => signOut(auth));
+        window.whiteboardStartGoogleSignIn = () => startLogin();
+
+        function attachBoardListener() {
+            if (unsubscribeBoard) return;
+            processedDocs.clear();
+            localDrawingCache = [];
+            redrawCanvas();
+            unsubscribeBoard = onSnapshot(
+                query(boardCollection),
+                (snapshot) => {
+                    let hasChanges = false;
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            hasChanges = true;
+                            const data = change.doc.data();
+                            const docId = change.doc.id;
+
+                            if(!processedDocs.has(docId)) {
+                                localDrawingCache.push(data); // Add to local cache for resize
+                                if (data.type === 'pen' || data.type === 'eraser') {
+                                    drawFromData(data);
+                                } else if (data.type === 'text') {
+                                    drawTextFromData(data);
+                                } else if (data.type === 'sticky') {
+                                    drawStickyNoteFromData(data);
+                                }
+                                processedDocs.add(docId);
+                            }
+                        }
+                    });
+
+                    if (snapshot.empty && hasChanges === false && localDrawingCache.length > 0) {
+                        // This handles the case where the whole collection was deleted.
+                        processedDocs.clear();
+                        localDrawingCache = [];
+                        redrawCanvas();
+                    }
+
+                },
+                (error) => {
+                    console.error('Authentication or Firestore setup failed:', error);
+                    if (statusText) statusText.textContent = 'Error connecting. Please refresh.';
+                }
+            );
+        }
+
+        function detachBoardListener() {
+            if (unsubscribeBoard) {
+                unsubscribeBoard();
+                unsubscribeBoard = null;
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                userId = null;
+                canvas.style.pointerEvents = 'none';
+                if (statusText) statusText.textContent = 'Please sign in with your @mbhs.sa.edu.au account.';
+                signInBtn?.classList.remove('hidden');
+                signInBtn?.removeAttribute('disabled');
+                signOutBtnEl?.classList.add('hidden');
+                if (clearCanvasBtn) clearCanvasBtn.style.display = 'none';
+                detachBoardListener();
+                processedDocs.clear();
+                localDrawingCache = [];
+                redrawCanvas();
+                return;
+            }
+
+            const email = (user.email || '').toLowerCase();
+            const domainOK = email.endsWith('@mbhs.sa.edu.au');
+            const isTeacher = isTeacherEmail(email);
+
+            if (!domainOK && !isTeacher) {
+                alert('Please sign in with your @mbhs.sa.edu.au account.');
+                await signOut(auth);
+                return;
+            }
+
+            userId = user.uid;
+            canvas.style.pointerEvents = 'auto';
+            if (statusText) {
+                statusText.innerHTML = `Signed in as <strong>${email}</strong><br><span class="text-xs text-slate-500">ID: ${user.uid}</span>`;
+            }
+            signInBtn?.classList.add('hidden');
+            signOutBtnEl?.classList.remove('hidden');
+            if (clearCanvasBtn) clearCanvasBtn.style.display = isTeacher ? '' : 'none';
+
+            attachBoardListener();
+        });
 
         // --- Canvas Logic ---
         function setCanvasSize() {
@@ -210,6 +331,10 @@
         }
 
         function saveToFirestore(data) {
+             if (!auth.currentUser) {
+                 console.warn("Skipping save: no authenticated user");
+                 return;
+             }
              addDoc(boardCollection, data).catch(err => console.error("Error writing document: ", err));
         }
 
@@ -362,7 +487,11 @@
              await Promise.all(deletePromises);
         }
         
-        clearCanvasBtn.addEventListener('click', () => {
+        clearCanvasBtn?.addEventListener('click', () => {
+            if (!isTeacherEmail(auth.currentUser?.email || '')) {
+                alert('Teacher only');
+                return;
+            }
             if(confirm('Are you sure you want to clear the entire whiteboard for everyone?')) {
                 clearFirestoreCollection();
             }
@@ -382,59 +511,7 @@
             });
         }
         
-        // --- Main Execution ---
-        async function main() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                userId = auth.currentUser.uid;
-                userInfo.textContent = `Your ID: ${userId}`;
-                
-                // Listen for realtime updates
-                onSnapshot(query(boardCollection), (snapshot) => {
-                     let hasChanges = false;
-                     snapshot.docChanges().forEach((change) => {
-                         if (change.type === "added") {
-                             hasChanges = true;
-                             const data = change.doc.data();
-                             const docId = change.doc.id;
-                             
-                             if(!processedDocs.has(docId)) {
-                                 localDrawingCache.push(data); // Add to local cache for resize
-                                 if (data.type === 'pen' || data.type === 'eraser') {
-                                     drawFromData(data);
-                                 } else if (data.type === 'text') {
-                                     drawTextFromData(data);
-                                 } else if (data.type === 'sticky') {
-                                     drawStickyNoteFromData(data);
-                                 }
-                                 processedDocs.add(docId);
-                             }
-                         }
-                     });
-
-                     if (snapshot.empty && hasChanges === false && localDrawingCache.length > 0) {
-                        // This handles the case where the whole collection was deleted.
-                        processedDocs.clear();
-                        localDrawingCache = [];
-                        redrawCanvas();
-                     }
-
-                });
-
-            } catch (error) {
-                console.error("Authentication or Firestore setup failed:", error);
-                userInfo.textContent = "Error connecting. Please refresh.";
-            }
-
-            setCanvasSize();
-        }
-
-        main();
+        setCanvasSize();
     </script>
 </body>
 </html>

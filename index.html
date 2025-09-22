@@ -684,184 +684,193 @@
   </script>
 
 <script type="module">
-  // Firebase CDN (modular SDK)
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import {
-    getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider
-  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import {
-    getFirestore, doc, setDoc, getDoc, serverTimestamp,
-    collection, query, orderBy, limit, getDocs
-  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// ========== Firebase (modular SDK via CDN) ==========
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getAuth, onAuthStateChanged, signOut, signInWithPopup, signInWithRedirect, GoogleAuthProvider
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getFirestore, doc, setDoc, getDoc, serverTimestamp,
+  collection, query, orderBy, limit, getDocs
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-  // === Your Firebase config (safe to be public) ===
-  const firebaseConfig = {
-    apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
-    authDomain: "save-a9ea5.firebaseapp.com",
-    projectId: "save-a9ea5",
-    storageBucket: "save-a9ea5.firebasestorage.app",
-    messagingSenderId: "266526082951",
-    appId: "1:266526082951:web:dea4164197d3ff3f02f522"
+// ---- Config (public; do not hide) ----
+const firebaseConfig = {
+  apiKey: "AIzaSyBrFrkNcIq7LL7dMvpG3ZUgNsYXs6hBTQY",
+  authDomain: "save-a9ea5.firebaseapp.com",
+  projectId: "save-a9ea5",
+  storageBucket: "save-a9ea5.firebasestorage.app",
+  messagingSenderId: "266526082951",
+  appId: "1:266526082951:web:dea4164197d3ff3f02f522"
+};
+
+// ---- Init ----
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ---- Teacher allowlist (edit as needed) ----
+const TEACHERS = [
+  'dmaher42@hotmail.com',
+  // 'your.name@mbhs.sa.edu.au',
+];
+
+// ---- UI refs ----
+const googleBtn = document.getElementById('googleLogin');
+const signOutBtn = document.getElementById('signOut');
+const statusEl = document.getElementById('fbStatus');
+const saveNowBtn = document.getElementById('saveNow');
+const hintEl = document.getElementById('saveHint');
+const nameInput = document.getElementById('studentName');
+const classInput = document.getElementById('studentClass');
+
+// ---- Collectors from page (keep selectors as in your page) ----
+function collectWritingPanels() {
+  const out = {};
+  document.querySelectorAll('[data-writing-panel]').forEach((panel, i) => {
+    const key = panel.getAttribute('data-storage-key') || `panel_${i}`;
+    const text = panel.querySelector('[data-writing-input]')?.value?.trim() || '';
+    out[key] = text;
+  });
+  return out;
+}
+function getGameScoreObj() {
+  let score = null, total = null;
+  const sEl = document.getElementById('score');
+  if (sEl?.textContent) {
+    const m = sEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+    if (m) { score = +m[1]; total = +m[2]; }
+  }
+  return { score, total };
+}
+
+// ---- Save bundle to Firestore ----
+async function saveBundle() {
+  const user = auth.currentUser;
+  if (!user) { if (hintEl) hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au'; return; }
+  const payload = {
+    uid: user.uid,
+    email: user.email || null,
+    name: nameInput?.value.trim() || null,
+    class: classInput?.value.trim() || null,
+    lesson: 'vibe-vs-text',
+    panels: collectWritingPanels(),
+    game: getGameScoreObj(),
+    updatedAt: serverTimestamp()
   };
+  await setDoc(doc(db, 'responses', user.uid), payload, { merge: true });
+  if (hintEl) { hintEl.textContent = 'Saved just now.'; setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000); }
+}
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+// ---- Debounced autosave ----
+let t=null; function scheduleSave(){ clearTimeout(t); t=setTimeout(saveBundle, 1000); }
+document.querySelectorAll('[data-writing-input]').forEach(el => {
+  el.addEventListener('input', scheduleSave);
+  el.addEventListener('blur', saveBundle);
+});
+document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
+saveNowBtn?.addEventListener('click', saveBundle);
 
-  // OPTIONAL: App Check (after you enable reCAPTCHA v3 in Firebase Console)
-  // import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
-  // initializeAppCheck(app, {
-  //   provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
-  //   isTokenAutoRefreshEnabled: true
-  // });
+// ---- Google Sign-In with popup→redirect fallback ----
+function startLogin() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
+  googleBtn?.setAttribute('disabled','true');
 
-  // UI hooks
-  const googleBtn = document.getElementById('googleLogin');
-  const signOutBtn = document.getElementById('signOut');
-  const statusEl = document.getElementById('fbStatus');
-  const saveNowBtn = document.getElementById('saveNow');
-  const hintEl = document.getElementById('saveHint');
-  const nameInput = document.getElementById('studentName');
-  const classInput = document.getElementById('studentClass');
-  const dash = document.getElementById('teacher-dash');
-  const dashInfo = document.getElementById('dashInfo');
-  const dashRows = document.getElementById('dashRows');
-
-  // ===== Allowed teacher emails (edit this list) =====
-  const TEACHERS = [
-    'dmaher42@hotmail.com',
-    // 'your.name@mbhs.sa.edu.au',
-    // 'another.teacher@mbhs.sa.edu.au',
-  ];
-
-  // ===== Sign in with Google (domain hint) =====
-  googleBtn?.addEventListener('click', async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      // 'hd' is a hint for Google Workspace; we still enforce on the client + in Firestore Rules.
-      provider.setCustomParameters({ hd: 'mbhs.sa.edu.au', prompt: 'select_account' });
-      await signInWithPopup(auth, provider);
-    } catch (e) {
-      console.error(e);
-      alert('Google sign-in failed. If this continues, contact your teacher.');
-    }
-  });
-
-  signOutBtn?.addEventListener('click', () => signOut(auth));
-
-  // ===== Collectors from your page =====
-  function collectWritingPanels() {
-    const out = {};
-    document.querySelectorAll('[data-writing-panel]').forEach((panel, i) => {
-      const key = panel.getAttribute('data-storage-key') || `panel_${i}`;
-      const text = panel.querySelector('[data-writing-input]')?.value?.trim() || '';
-      out[key] = text;
-    });
-    return out;
-  }
-  function getGameScoreObj() {
-    let score = null, total = null;
-    const sEl = document.getElementById('score');
-    if (sEl?.textContent) {
-      const m = sEl.textContent.match(/(\d+)\s*\/\s*(\d+)/);
-      if (m) { score = +m[1]; total = +m[2]; }
-    }
-    return { score, total };
-  }
-
-  // ===== Save to Firestore =====
-  async function saveBundle() {
-    const user = auth.currentUser;
-    if (!user) { hintEl.textContent = 'Please sign in with @mbhs.sa.edu.au'; return; }
-
-    const payload = {
-      uid: user.uid,
-      email: user.email || null,
-      name: nameInput.value.trim() || null,
-      class: classInput.value.trim() || null,
-      lesson: 'vibe-vs-text',
-      panels: collectWritingPanels(),
-      game: getGameScoreObj(),
-      updatedAt: serverTimestamp()
-    };
-    await setDoc(doc(db, 'responses', user.uid), payload, { merge: true });
-    hintEl.textContent = 'Saved just now.'; setTimeout(()=> hintEl.textContent = 'Autosaves while you type.', 2000);
-  }
-
-  // Debounced autosave
-  let t=null; function scheduleSave(){ clearTimeout(t); t=setTimeout(saveBundle, 1000); }
-  document.querySelectorAll('[data-writing-input]').forEach(el => {
-    el.addEventListener('input', scheduleSave);
-    el.addEventListener('blur', saveBundle);
-  });
-  document.getElementById('nextBtn')?.addEventListener('click', scheduleSave);
-  saveNowBtn?.addEventListener('click', saveBundle);
-
-  // ===== Auth guard: only @mbhs.sa.edu.au students; only teacher emails see dashboard =====
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      statusEl.textContent = 'Not signed in';
-      dash.classList.add('hidden');
-      return;
-    }
-
-    const email = (user.email || '').toLowerCase();
-    const domainOK = email.endsWith('@mbhs.sa.edu.au');
-    const isTeacher = TEACHERS.map(e=>e.toLowerCase()).includes(email);
-
-    // Block non-MBHS users (unless in TEACHERS)
-    if (!domainOK && !isTeacher) {
-      alert('Please sign in with your @mbhs.sa.edu.au account.');
-      await signOut(auth);
-      return;
-    }
-
-    statusEl.textContent = `Signed in: ${email || 'account'}`;
-
-    // Prefill from existing doc
-    try {
-      const snap = await getDoc(doc(db, 'responses', user.uid));
-      const data = snap.exists()? snap.data() : null;
-      if (data) {
-        if (data.name && !nameInput.value) nameInput.value = data.name;
-        if (data.class && !classInput.value) classInput.value = data.class;
+  signInWithPopup(auth, provider)
+    .then(()=> console.debug('[auth] popup success'))
+    .catch(async (e) => {
+      console.warn('[auth] popup failed; trying redirect', e.code, e.message);
+      // fallback for popup blockers or domain config
+      if (
+        e.code === 'auth/operation-not-supported-in-this-environment' ||
+        e.code === 'auth/popup-blocked' ||
+        e.code === 'auth/popup-closed-by-user' ||
+        e.code === 'auth/auth-domain-config-required'
+      ) {
+        await signInWithRedirect(auth, provider);
+        return;
       }
-    } catch {}
+      alert('Sign-in failed. Check Authorized domains in Firebase and try again.');
+    })
+    .finally(()=> googleBtn?.removeAttribute('disabled'));
+}
 
-    // Teacher dashboard
+googleBtn?.addEventListener('click', startLogin);
+signOutBtn?.addEventListener('click', () => signOut(auth));
+window.startGoogleSignIn = () => startLogin(); // for manual testing in console
+
+// ---- Auth guard: only @mbhs.sa.edu.au students; teacher allowlist see dashboard ----
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    if (statusEl) statusEl.textContent = 'Not signed in';
+    // Hide teacher dashboard if present
+    document.getElementById('teacher-dash')?.classList.add('hidden');
+    return;
+  }
+
+  const email = (user.email || '').toLowerCase();
+  const domainOK = email.endsWith('@mbhs.sa.edu.au');
+  const isTeacher = TEACHERS.map(e=>e.toLowerCase()).includes(email);
+
+  if (!domainOK && !isTeacher) {
+    alert('Please sign in with your @mbhs.sa.edu.au account.');
+    await signOut(auth);
+    return;
+  }
+  if (statusEl) statusEl.textContent = `Signed in: ${email || 'account'}`;
+
+  // Prefill fields if prior data exists
+  try {
+    const snap = await getDoc(doc(db, 'responses', user.uid));
+    const data = snap.exists()? snap.data() : null;
+    if (data) {
+      if (data.name && !nameInput?.value) nameInput.value = data.name;
+      if (data.class && !classInput?.value) classInput.value = data.class;
+    }
+  } catch(e){ console.debug('prefill skipped', e); }
+
+  // Teacher dashboard (optional)
+  const dash = document.getElementById('teacher-dash');
+  if (dash) {
     if (isTeacher) {
       dash.classList.remove('hidden');
-      dashInfo.textContent = 'Showing latest 50 responses';
-      dashRows.innerHTML = '';
-      const q = query(collection(db, 'responses'), orderBy('updatedAt','desc'), limit(50));
-      const qs = await getDocs(q);
-      qs.forEach(docSnap => {
-        const d = docSnap.data();
-        const when = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '—';
-        const score = (d.game?.score!=null && d.game?.total!=null) ? `${d.game.score}/${d.game.total}` : '—';
-        const name = d.name || '—', klass = d.class || '—', mail = d.email || '—';
-        const link = `data:text/plain,` + encodeURIComponent(
-          `Name: ${name}\nClass: ${klass}\nEmail: ${mail}\nUpdated: ${when}\nScore: ${score}\n\nPanels:\n` +
-          Object.entries(d.panels||{}).map(([k,v])=>`- ${k}:\n${(v||'').trim()}\n`).join('\n')
-        );
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="p-2 align-top">${name}</td>
-          <td class="p-2 align-top">${klass}</td>
-          <td class="p-2 align-top">${mail}</td>
-          <td class="p-2 align-top">${when}</td>
-          <td class="p-2 align-top">${score}</td>
-          <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name||'student').replace(/\s+/g,'_')}_submission.txt">Download</a></td>
-        `;
-        dashRows.appendChild(tr);
-      });
+      const dashInfo = document.getElementById('dashInfo');
+      const dashRows = document.getElementById('dashRows');
+      if (dashInfo) dashInfo.textContent = 'Showing latest 50 responses';
+      if (dashRows) {
+        dashRows.innerHTML = '';
+        const q = query(collection(db, 'responses'), orderBy('updatedAt','desc'), limit(50));
+        const qs = await getDocs(q);
+        qs.forEach(docSnap => {
+          const d = docSnap.data();
+          const when = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '—';
+          const score = (d.game?.score!=null && d.game?.total!=null) ? `${d.game.score}/${d.game.total}` : '—';
+          const name = d.name || '—', klass = d.class || '—', mail = d.email || '—';
+          const link = `data:text/plain,` + encodeURIComponent(
+            `Name: ${name}\nClass: ${klass}\nEmail: ${mail}\nUpdated: ${when}\nScore: ${score}\n\nPanels:\n` +
+            Object.entries(d.panels||{}).map(([k,v])=>`- ${k}:\n${(v||'').trim()}\n`).join('\n')
+          );
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="p-2 align-top">${name}</td>
+            <td class="p-2 align-top">${klass}</td>
+            <td class="p-2 align-top">${mail}</td>
+            <td class="p-2 align-top">${when}</td>
+            <td class="p-2 align-top">${score}</td>
+            <td class="p-2 align-top"><a class="underline" href="${link}" download="${(name||'student').replace(/\s+/g,'_')}_submission.txt">Download</a></td>
+          `;
+          dashRows?.appendChild(tr);
+        });
+      }
     } else {
       dash.classList.add('hidden');
     }
+  }
 
-    // Save once on sign-in
-    saveBundle();
-  });
+  // Save once on sign-in to create/update doc
+  saveBundle();
+});
 </script>
 
 
