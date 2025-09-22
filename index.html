@@ -57,26 +57,6 @@
     .writing-panel__status[data-state="muted"]{color:#475569}
     .writing-panel__reset{border:1px solid rgba(148,163,184,.6);border-radius:9999px;padding:.35rem .85rem;font-size:.85rem;font-weight:600;color:#2563eb;background:#fff}
     .writing-panel__reset:hover{background:#dbeafe}
-
-    /* Athens map explorer */
-    #athens-map-wrapper{position:relative;border-radius:1.5rem;overflow:hidden;border:1px solid rgba(148,163,184,.35);background:linear-gradient(135deg,rgba(219,234,254,.35),rgba(248,250,252,.85));box-shadow:0 18px 36px rgba(15,23,42,.12)}
-    #athens-map{position:relative;height:420px}
-    #athens-3d-layer{position:absolute;inset:0;pointer-events:none}
-    #athens-agora-layer,#athens-pin-layer{position:absolute;inset:0}
-    #landmarks-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-    .athens-pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:0.3rem;transform:translate(-50%,-100%);pointer-events:auto}
-    .athens-pin::before{content:'';width:14px;height:14px;border-radius:9999px;background:rgba(59,130,246,.95);box-shadow:0 0 0 2px rgba(255,255,255,.9);animation:pulse 2.4s infinite}
-    .athens-pin-label{padding:.2rem .45rem;border-radius:.5rem;background:rgba(15,23,42,.85);color:#f8fafc;font-size:.7rem;font-weight:600;letter-spacing:.01em;white-space:nowrap;box-shadow:0 8px 20px rgba(15,23,42,.28)}
-    @keyframes pulse{0%{transform:scale(1);opacity:.9}50%{transform:scale(1.25);opacity:.45}100%{transform:scale(1);opacity:.9}}
-    .mini-map{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem;padding:.75rem;border-radius:.85rem;background:rgba(15,23,42,.04);border:1px solid rgba(148,163,184,.35)}
-    .map-icon{width:10px;height:10px;border-radius:9999px;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(15,23,42,.25)}
-    .map-icon-democracy{background:#22c55e}
-    .map-icon-cultural{background:#ef4444}
-    .map-icon-natural{background:#2563eb}
-    .athens-mini-map-label{font-size:.75rem;color:#475569}
-    .athens-agora-building{position:absolute;width:32px;height:18px;border-radius:.35rem;border:1px solid rgba(59,130,246,.75);background:rgba(59,130,246,.3);transform:translate(-50%,-50%);box-shadow:0 4px 12px rgba(15,23,42,.25)}
-    .athens-agora-building[data-category="democracy"]{background:rgba(34,197,94,.35);border-color:rgba(22,163,74,.85)}
-    .athens-agora-building span{position:absolute;bottom:100%;left:50%;transform:translate(-50%,-.45rem);background:rgba(15,23,42,.85);color:#f8fafc;padding:.15rem .4rem;border-radius:.4rem;font-size:.65rem;font-weight:600;white-space:nowrap}
   </style>
 </head>
 <body class="bg-gray-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100">
@@ -454,30 +434,6 @@
           </thead>
           <tbody id="dashRows"></tbody>
         </table>
-      </div>
-    </section>
-
-    <!-- Athens Map Explorer -->
-    <section id="athens-explorer" class="activity-card mt-12" aria-labelledby="athens-explorer-title">
-      <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
-        <h2 id="athens-explorer-title" class="text-2xl font-extrabold">Athens Landmarks Explorer</h2>
-        <p class="text-sm text-slate-600 dark:text-slate-300 max-w-xl">
-          Explore key monuments of classical Athens. Pins mark major temples, civic buildings, and natural vantage points;
-          the mini-map highlights categories so students can compare democracy, cultural, and natural places at a glance.
-        </p>
-      </div>
-      <div id="athens-map-wrapper" class="mb-4">
-        <div id="athens-map">
-          <div id="athens-3d-layer" aria-hidden="true">
-            <div id="athens-agora-layer"></div>
-            <div id="athens-pin-layer"></div>
-          </div>
-          <canvas id="landmarks-canvas" aria-hidden="true"></canvas>
-        </div>
-      </div>
-      <div>
-        <div class="mini-map" id="mini-map" role="list" aria-label="Landmark categories"></div>
-        <p class="athens-mini-map-label mt-2">Dot colours: democracy (green), cultural (red), natural (blue).</p>
       </div>
     </section>
 
@@ -915,150 +871,6 @@ onAuthStateChanged(auth, async (user) => {
   // Save once on sign-in to create/update doc
   saveBundle();
 });
-</script>
-
-<script type="module">
-  import { createLandmarkOverlay } from './src/map/createOverlay.js';
-
-  const BOUNDS = {
-    minLon: 23.54,
-    maxLon: 23.75,
-    minLat: 37.93,
-    maxLat: 38.05
-  };
-
-  const canvas = document.getElementById('landmarks-canvas');
-  const overlay = createLandmarkOverlay
-    ? createLandmarkOverlay(canvas, {
-        geoJsonUrl: './data/athens_places.geojson',
-        agoraDataUrl: './data/agora_local.json',
-        showAgoraLayer: true
-      })
-    : new window.AthensMap.LandmarkOverlay(canvas, {
-        geoJsonUrl: './data/athens_places.geojson',
-        agoraDataUrl: './data/agora_local.json',
-        showAgoraLayer: true
-      });
-
-  overlay.initialize().catch(console.error);
-
-  const AGORA_BUILDING_STYLES = {
-    'Temple of Hephaistos': { width: 46, height: 20 },
-    'Stoa of Attalos': { width: 96, height: 18 },
-    Tholos: { width: 30, height: 30, borderRadius: '50%' },
-    Bouleuterion: { width: 36, height: 24 },
-    'Altar of the Twelve Gods': { width: 28, height: 16 }
-  };
-
-  let cachedFeatures = [];
-  let cachedAgoraFeatures = [];
-
-  function projectToMap([lon, lat], rect) {
-    const width = rect?.width || 1;
-    const height = rect?.height || 1;
-    const x = ((lon - BOUNDS.minLon) / (BOUNDS.maxLon - BOUNDS.minLon)) * width;
-    const y = (1 - (lat - BOUNDS.minLat) / (BOUNDS.maxLat - BOUNDS.minLat)) * height;
-    return [x, y];
-  }
-
-  function renderAgoraFeatures(features, rect) {
-    const layer = document.getElementById('athens-agora-layer');
-    if (!layer) return;
-    layer.innerHTML = '';
-    features.forEach((feature) => {
-      if (feature?.geometry?.type !== 'Point') return;
-      const title = feature?.properties?.title || feature?.properties?.name || 'Agora building';
-      const building = document.createElement('div');
-      building.className = 'athens-agora-building';
-      const cat = (feature?.properties?.category || 'cultural').toLowerCase();
-      building.dataset.category = cat;
-      const style = AGORA_BUILDING_STYLES[feature?.properties?.name] || {};
-      if (style.width) building.style.width = `${style.width}px`;
-      if (style.height) building.style.height = `${style.height}px`;
-      if (style.borderRadius) building.style.borderRadius = style.borderRadius;
-      const [x, y] = projectToMap(feature.geometry.coordinates, rect);
-      building.style.left = `${x}px`;
-      building.style.top = `${y}px`;
-      const label = document.createElement('span');
-      label.textContent = title;
-      building.appendChild(label);
-      layer.appendChild(building);
-    });
-  }
-
-  function renderPins(features, rect) {
-    const layer = document.getElementById('athens-pin-layer');
-    const mini = document.getElementById('mini-map');
-    if (!layer || !mini) return;
-    layer.innerHTML = '';
-    mini.innerHTML = '';
-
-    features.forEach((feature) => {
-      if (feature?.geometry?.type !== 'Point') return;
-      const title = feature?.properties?.title || feature?.properties?.name || 'Landmark';
-      const pin = document.createElement('div');
-      pin.className = 'athens-pin';
-      const label = document.createElement('span');
-      label.className = 'athens-pin-label';
-      label.textContent = title;
-      pin.appendChild(label);
-      const [x, y] = projectToMap(feature.geometry.coordinates, rect);
-      pin.style.left = `${x}px`;
-      pin.style.top = `${y}px`;
-      pin.setAttribute('role', 'img');
-      pin.setAttribute('aria-label', title);
-      layer.appendChild(pin);
-
-      const icon = document.createElement('div');
-      const cat = (feature?.properties?.category || 'cultural').toLowerCase();
-      icon.className = `map-icon map-icon-${cat}`;
-      icon.setAttribute('role', 'listitem');
-      icon.title = title;
-      mini.appendChild(icon);
-    });
-  }
-
-  function renderAll() {
-    const container = document.getElementById('athens-3d-layer');
-    if (!container) return;
-    const rect = { width: container.clientWidth || 1, height: container.clientHeight || 1 };
-    renderAgoraFeatures(cachedAgoraFeatures, rect);
-    renderPins(cachedFeatures, rect);
-  }
-
-  async function loadAthensGeo(force = false) {
-    if (!cachedFeatures.length || force) {
-      const res = await fetch('./data/athens_places.geojson');
-      if (!res.ok) {
-        throw new Error(`Failed to load GeoJSON: ${res.status}`);
-      }
-      const data = await res.json();
-      cachedFeatures = Array.isArray(data.features) ? data.features : [];
-    }
-    renderAll();
-    return cachedFeatures;
-  }
-
-  async function loadAgoraGeo(force = false) {
-    if (!cachedAgoraFeatures.length || force) {
-      try {
-        const res = await fetch('./data/agora_local.json');
-        if (!res.ok) throw new Error(`status ${res.status}`);
-        const data = await res.json();
-        cachedAgoraFeatures = Array.isArray(data.features) ? data.features : [];
-      } catch (err) {
-        console.warn('[athens] Failed to load Agora data', err);
-        cachedAgoraFeatures = [];
-      }
-    }
-    renderAll();
-    return cachedAgoraFeatures;
-  }
-
-  Promise.all([loadAthensGeo(), loadAgoraGeo()]).catch(console.error);
-  window.addEventListener('resize', renderAll);
-
-  window.loadAthensGeo = loadAthensGeo;
 </script>
 
 
